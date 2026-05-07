@@ -282,6 +282,29 @@ Use this exact flow for a fast, end-to-end product walkthrough.
 - Verify `Docs/Architecture/Source-Manifest.md` exists and lists official URLs.
 - Verify `Docs/Architecture/Evals-Report.md` reflects latest run outputs.
 
+## Judge Checklist (Pass/Fail)
+
+Use this as a quick scoring sheet during review.
+
+| Check | Pass/Fail |
+|---|---|
+| Investor login works and lands on dashboard | ☐ Pass ☐ Fail |
+| Admin login works and shows approval center | ☐ Pass ☐ Fail |
+| Smart Search answers a fund query with grounded context/citations | ☐ Pass ☐ Fail |
+| Smart Search handles fee explainer query correctly | ☐ Pass ☐ Fail |
+| Unsafe/advisory prompt is refused (no investment recommendation) | ☐ Pass ☐ Fail |
+| Voice Agent opens and can answer a query with session continuity | ☐ Pass ☐ Fail |
+| Booking can be created and booking code is generated | ☐ Pass ☐ Fail |
+| Approval action can be reviewed and status updated | ☐ Pass ☐ Fail |
+| Weekly Pulse page shows trend/theme/keyword outputs | ☐ Pass ☐ Fail |
+| `Evals-Report.md` includes Golden Dataset section (5 cases) | ☐ Pass ☐ Fail |
+| `Evals-Report.md` includes Adversarial Safety section (3 cases) | ☐ Pass ☐ Fail |
+| `Evals-Report.md` includes UX checks (word count, 3 actions, top-theme mention) | ☐ Pass ☐ Fail |
+| `Source-Manifest.md` exists with official URL list | ☐ Pass ☐ Fail |
+| Documentation links in root README are valid and useful | ☐ Pass ☐ Fail |
+
+**Overall Result:** ☐ Pass ☐ Fail
+
 ## Who This Is For
 
 - Fintech product teams building safe AI-assisted support flows
