@@ -227,6 +227,61 @@ Architecture and deployment notes are documented in `Docs/Architecture/architect
 - Evaluation suite adds quality gates for RAG, safety, and UX constraints.
 - Output artifacts are maintained in each phase under `expected_outputs/` and in architecture docs.
 
+## 10-Minute Demo Script (Evaluator Friendly)
+
+Use this exact flow for a fast, end-to-end product walkthrough.
+
+### A) Investor Demo (about 6 minutes)
+
+1. **Login**
+   - Sign in as investor user.
+   - Confirm dashboard loads with KPI cards.
+
+2. **Smart Search (fund + fee)**
+   - Ask: "What is exit load and when is it charged?"
+   - Ask: "Compare SIP vs lumpsum for a medium-risk investor."
+   - Verify response is grounded/cited and remains non-advisory.
+
+3. **Voice Agent continuity**
+   - Open Voice Agent from sidebar.
+   - Ask a follow-up question related to previous context.
+   - Verify session continuity and safe response behavior.
+
+4. **Booking flow**
+   - Create a booking request for advisor callback.
+   - Verify booking code is generated and booking status appears in UI.
+
+5. **Resource Hub / Explorer**
+   - Open fund explorer/resource hub.
+   - Verify fee explainer and mutual-fund information are visible with updated data context.
+
+### B) Admin Demo (about 4 minutes)
+
+1. **Admin login**
+   - Sign in as admin role.
+   - Confirm approval center is visible.
+
+2. **Approvals**
+   - Open pending actions.
+   - Approve or reject one generated action (email/calendar/notes path).
+   - Verify status update/auditability in UI.
+
+3. **Weekly Pulse**
+   - Open Weekly Pulse page.
+   - Verify sentiment/keyword/theme outputs are present and coherent.
+
+4. **Evaluation Suite output**
+   - Open `Docs/Architecture/Evals-Report.md`.
+   - Confirm sections include:
+     - Golden Dataset (5 RAG cases)
+     - Adversarial Safety (3 refusal checks)
+     - UX checks (word count, action ideas, voice top-theme mention)
+
+### C) Submission Artifacts Check (1 minute)
+
+- Verify `Docs/Architecture/Source-Manifest.md` exists and lists official URLs.
+- Verify `Docs/Architecture/Evals-Report.md` reflects latest run outputs.
+
 ## Who This Is For
 
 - Fintech product teams building safe AI-assisted support flows
