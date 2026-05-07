@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "funds_processed": 30,
+  "chunks_generated": 285,
+  "embeddings_time_ms": 11200,
+  "collection_size": 285,
+  "embedding_model_used": "BAAI/bge-large-en-v1.5",
+  "skipped_funds": [],
+  "errors": []
+}

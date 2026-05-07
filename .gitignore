@@ -1,0 +1,30 @@
+.DS_Store
+.cursor/
+.agents/
+.pytest_cache/
+.ruff_cache/
+**/.pytest_cache/
+**/.ruff_cache/
+
+# Python/Node build artifacts
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.venv/
+**/venv/
+**/node_modules/
+**/dist/
+**/.mypy_cache/
+
+# Secrets / local env
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+**/.env.example
+
+# Local secret files
+googleserviceaccount.json
+client_secret_*.json
+*credentials*.json

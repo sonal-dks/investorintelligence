@@ -1,0 +1,11 @@
+{
+  "local": {
+    "tests": "6 passed"
+  },
+  "live": {
+    "/api/funds": 200,
+    "/api/funds/summary": 200,
+    "/api/resources/fees": 200,
+    "fee_sections": 4
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "login_sessions": {
+    "value": 12,
+    "trend_pct": 20.0,
+    "trend_direction": "up"
+  },
+  "chatbot_sessions": {
+    "value": 8,
+    "trend_pct": -10.5,
+    "trend_direction": "down"
+  },
+  "voice_sessions": {
+    "value": 3,
+    "trend_pct": 100.0,
+    "trend_direction": "new"
+  },
+  "bookings": {
+    "value": 2,
+    "trend_pct": 0.0,
+    "trend_direction": "neutral"
+  }
+}

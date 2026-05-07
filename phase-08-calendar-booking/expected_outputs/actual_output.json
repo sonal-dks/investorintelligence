@@ -1,0 +1,9 @@
+{
+  "local": {
+    "tests": "14 passed"
+  },
+  "live": {
+    "calendar_event_created": "jfkvlfui84htpimn0bta1qhm7g",
+    "gmail_draft_created": "r-2967190105517718958"
+  }
+}

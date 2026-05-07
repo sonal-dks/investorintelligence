@@ -1,0 +1,191 @@
+{
+  "queries_total": 20,
+  "queries_passed": 19,
+  "top3_precision": 0.95,
+  "passes_threshold_80pct": true,
+  "avg_query_time_ms": 585,
+  "elapsed_total_ms": 11710,
+  "embedding_model_used": "BAAI/bge-large-en-v1.5",
+  "per_query": [
+    {
+      "query": "What is the exit load of Mirae Asset Large Cap?",
+      "expected_substring": "mirae-asset-large-cap-fund",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-large-cap-fund-direct-growth",
+      "query_time_ms": 11185,
+      "resolved_fund_slug": "mirae-asset-large-cap-fund-direct-growth"
+    },
+    {
+      "query": "NAV of Mirae Asset Large Cap fund",
+      "expected_substring": "mirae-asset-large-cap-fund",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-large-cap-fund-direct-growth",
+      "query_time_ms": 37,
+      "resolved_fund_slug": "mirae-asset-large-cap-fund-direct-growth"
+    },
+    {
+      "query": "expense ratio of Mirae Asset Flexi Cap",
+      "expected_substring": "mirae-asset-flexi-cap",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-flexi-cap-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-flexi-cap-fund-direct-growth"
+    },
+    {
+      "query": "Minimum SIP for Mirae Asset ELSS Tax Saver",
+      "expected_substring": "mirae-asset-elss-tax-saver",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-elss-tax-saver-fund-direct-growth",
+      "query_time_ms": 35,
+      "resolved_fund_slug": "mirae-asset-elss-tax-saver-fund-direct-growth"
+    },
+    {
+      "query": "Risk level of Mirae Asset Midcap",
+      "expected_substring": "mirae-asset-midcap-fund",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-midcap-fund-direct-growth",
+      "query_time_ms": 34,
+      "resolved_fund_slug": "mirae-asset-midcap-fund-direct-growth"
+    },
+    {
+      "query": "Exit load of Mirae Asset Small Cap Fund",
+      "expected_substring": "mirae-asset-small-cap",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-small-cap-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-small-cap-fund-direct-growth"
+    },
+    {
+      "query": "AUM of Mirae Asset Arbitrage Fund",
+      "expected_substring": "mirae-asset-arbitrage",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-arbitrage-fund-direct-growth",
+      "query_time_ms": 34,
+      "resolved_fund_slug": "mirae-asset-arbitrage-fund-direct-growth"
+    },
+    {
+      "query": "Returns of Mirae Asset Healthcare Fund",
+      "expected_substring": "mirae-asset-healthcare",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-healthcare-fund-direct-growth",
+      "query_time_ms": 36,
+      "resolved_fund_slug": "mirae-asset-healthcare-fund-direct-growth"
+    },
+    {
+      "query": "tell query about mirae larg cap exit load",
+      "expected_substring": "mirae-asset-large-cap-fund",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-large-cap-fund-direct-growth",
+      "query_time_ms": 24,
+      "resolved_fund_slug": "mirae-asset-large-cap-fund-direct-growth"
+    },
+    {
+      "query": "NAV mirae arbitrage",
+      "expected_substring": "mirae-asset-arbitrage",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-arbitrage-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-arbitrage-fund-direct-growth"
+    },
+    {
+      "query": "ELSS tax saver Mirae expense",
+      "expected_substring": "mirae-asset-elss-tax-saver",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-elss-tax-saver-fund-direct-growth",
+      "query_time_ms": 24,
+      "resolved_fund_slug": "mirae-asset-elss-tax-saver-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Banking and Financial Services Fund category",
+      "expected_substring": "mirae-asset-banking-and-financial-services",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-banking-and-financial-services-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-banking-and-financial-services-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Small Cap risk level",
+      "expected_substring": "mirae-asset-small-cap",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-small-cap-fund-direct-growth",
+      "query_time_ms": 22,
+      "resolved_fund_slug": "mirae-asset-small-cap-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Liquid fund expense ratio",
+      "expected_substring": "mirae-asset-liquid",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-liquid-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-liquid-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Aggressive Hybrid Fund NAV",
+      "expected_substring": "mirae-asset-aggressive-hybrid",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-aggressive-hybrid-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-aggressive-hybrid-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Large and Midcap minimum SIP",
+      "expected_substring": "mirae-asset-large-midcap",
+      "passed": false,
+      "match_rank": null,
+      "top1_slug": "mirae-asset-midcap-fund-direct-growth",
+      "query_time_ms": 24,
+      "resolved_fund_slug": "mirae-asset-midcap-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Multicap Fund AUM",
+      "expected_substring": "mirae-asset-multicap-fund",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-multicap-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-multicap-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Multi Asset Allocation expense ratio",
+      "expected_substring": "mirae-asset-multi-asset-allocation",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-multi-asset-allocation-fund-direct-growth",
+      "query_time_ms": 24,
+      "resolved_fund_slug": "mirae-asset-multi-asset-allocation-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Focused Fund risk",
+      "expected_substring": "mirae-asset-focused",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-focused-fund-direct-growth",
+      "query_time_ms": 37,
+      "resolved_fund_slug": "mirae-asset-focused-fund-direct-growth"
+    },
+    {
+      "query": "Mirae Asset Great Consumer Fund returns",
+      "expected_substring": "mirae-asset-great-consumer",
+      "passed": true,
+      "match_rank": 0,
+      "top1_slug": "mirae-asset-great-consumer-fund-direct-growth",
+      "query_time_ms": 23,
+      "resolved_fund_slug": "mirae-asset-great-consumer-fund-direct-growth"
+    }
+  ]
+}

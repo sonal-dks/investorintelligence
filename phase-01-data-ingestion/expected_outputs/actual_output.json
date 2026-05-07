@@ -1,0 +1,10 @@
+{
+  "local": {
+    "tests": "74 passed"
+  },
+  "live": {
+    "status": "blocked",
+    "reason": "Playwright Chromium headless shell spawn error -86 in sandbox architecture",
+    "json_snapshot_before_supabase": "implemented in run_scraper.py to expected_outputs/actual_output/funds_latest.json and reviews_latest.json"
+  }
+}

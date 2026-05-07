@@ -1,0 +1,9 @@
+{
+  "local": {
+    "tests": "5 passed"
+  },
+  "live": {
+    "status": "not_executed",
+    "reason": "no integrated cross-phase runtime in this repo"
+  }
+}

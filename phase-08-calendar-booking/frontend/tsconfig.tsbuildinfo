@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/bookingactionbar.test.tsx","./src/components/bookingactionbar.tsx","./src/components/bookingemailhistory.tsx","./src/components/bookingstatusbadge.tsx","./src/components/calendartab.tsx","./src/components/sendbookingemailbutton.tsx","./src/lib/api.ts","./src/test/setup.ts"],"version":"5.7.3"}

@@ -1,0 +1,4 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+export function KeywordTable({ rows }) {
+    return (_jsx("div", { style: { overflowX: "auto" }, children: _jsxs("table", { style: { width: "100%", borderCollapse: "collapse" }, children: [_jsx("thead", { children: _jsxs("tr", { children: [_jsx("th", { align: "left", children: "Keyword" }), _jsx("th", { align: "left", children: "Mentions" }), _jsx("th", { align: "left", children: "WoW %" }), _jsx("th", { align: "left", children: "Trend" })] }) }), _jsx("tbody", { children: rows.map((row) => (_jsxs("tr", { children: [_jsx("td", { children: row.keyword }), _jsx("td", { children: row.mention_count }), _jsxs("td", { style: { color: row.wow_change_pct >= 0 ? "green" : "crimson" }, children: [row.wow_change_pct, "%"] }), _jsx("td", { children: row.trend === "up" ? "↑" : row.trend === "down" ? "↓" : "→" })] }, row.keyword))) })] }) }));
+}

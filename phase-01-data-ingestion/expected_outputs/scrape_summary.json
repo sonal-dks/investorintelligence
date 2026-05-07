@@ -1,0 +1,12 @@
+{
+  "elapsed_seconds": 120.5,
+  "funds_attempted": 30,
+  "funds_scraped": 30,
+  "funds_valid": 30,
+  "funds_validation_errors": 0,
+  "funds_scrape_errors": 0,
+  "funds_inserted": 30,
+  "reviews_fetched": 100,
+  "reviews_validation_errors": 0,
+  "reviews_inserted": 100
+}

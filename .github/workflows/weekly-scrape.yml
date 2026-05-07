@@ -1,0 +1,46 @@
+name: Weekly App Reviews Scrape
+
+on:
+  schedule:
+    # Every Monday at 6:00 AM IST (00:30 UTC)
+    - cron: "30 0 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: phase-01-data-ingestion
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: phase-01-data-ingestion/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium --with-deps
+
+      - name: Run reviews-only scraper
+        run: python run_scraper.py --skip-funds
+
+      - name: Annotate summary
+        if: always()
+        run: |
+          echo "::notice::Weekly app-reviews scrape completed. Check logs for review counts."

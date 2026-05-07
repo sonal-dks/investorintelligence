@@ -1,0 +1,10 @@
+{
+  "review_id": "gp_review_abc123",
+  "reviewer_name": "Rahul S",
+  "rating": 4,
+  "review_text": "Good app for mutual fund investments. UI is clean.",
+  "review_date": "2026-05-04",
+  "thumbs_up": 12,
+  "app_version": "6.2.1",
+  "scraped_at": "2026-05-06T06:00:00Z"
+}

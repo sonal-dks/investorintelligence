@@ -1,0 +1,9 @@
+{
+  "local": {
+    "tests": "4 passed"
+  },
+  "live": {
+    "status": "not_executed",
+    "reason": "requires assembled admin workflow UI/runtime"
+  }
+}

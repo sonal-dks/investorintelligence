@@ -1,0 +1,29 @@
+{
+  "query": "What is the exit load of Mirae Asset Large Cap?",
+  "results": [
+    {
+      "text": "Exit load for Mirae Asset Large Cap Fund Direct Growth: 1% if redeemed within 1 year",
+      "metadata": {
+        "fund_slug": "mirae-asset-large-cap-fund-direct-growth",
+        "chunk_type": "fact",
+        "source_field": "exit_load",
+        "scraped_at": "2026-05-07T00:00:00Z"
+      },
+      "score": 0.92
+    },
+    {
+      "text": "Mirae Asset Large Cap Fund Direct Growth (Large Cap). NAV \u20b9105.43. AUM \u20b943215.67Cr. expense 0.53%. min SIP \u20b9500. risk Very High. exit load: Exit load of 1% if redeemed within 1 year.",
+      "metadata": {
+        "fund_slug": "mirae-asset-large-cap-fund-direct-growth",
+        "chunk_type": "description",
+        "source_field": "combined",
+        "scraped_at": "2026-05-07T00:00:00Z"
+      },
+      "score": 0.78
+    }
+  ],
+  "query_time_ms": 42,
+  "resolved_fund_slug": "mirae-asset-large-cap-fund-direct-growth",
+  "used_dynamic_k": 5,
+  "embedding_model_used": "BAAI/bge-large-en-v1.5"
+}

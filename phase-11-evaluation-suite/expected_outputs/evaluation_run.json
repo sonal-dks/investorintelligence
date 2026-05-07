@@ -1,0 +1,14 @@
+{
+  "run_id": "86419a6d-c415-46ee-a405-5933e85d7754",
+  "status": "completed",
+  "run_type": "manual",
+  "rag_faithfulness_pct": 0.0,
+  "rag_relevance_pct": 0.0,
+  "safety_pass_pct": 100.0,
+  "pulse_word_count": 82,
+  "action_items_count": 3,
+  "total_cases": 4,
+  "passed_cases": 1,
+  "started_at": "2026-05-07 14:58:06.144710+00:00",
+  "completed_at": "2026-05-07 14:58:06.145360+00:00"
+}

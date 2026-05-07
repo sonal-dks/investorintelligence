@@ -1,0 +1,13 @@
+{
+  "fund_name": "Sample Fund 1",
+  "category": "Large Cap",
+  "nav": 100.0,
+  "nav_date": "2026-05-07",
+  "aum_cr": 1000.0,
+  "expense_ratio": 0.45,
+  "min_sip": 500,
+  "risk_level": "Moderately High",
+  "returns_1y": 8.0,
+  "returns_3y": 10.0,
+  "returns_5y": null
+}

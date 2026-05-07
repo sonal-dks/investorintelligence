@@ -1,0 +1,15 @@
+{
+  "id": "approval-uuid",
+  "action_type": "booking",
+  "title": "Booking - SIP review",
+  "investor_name": "Demo Investor",
+  "status": "pending",
+  "priority": "medium",
+  "payload": {
+    "topic": "SIP review",
+    "time_preference": "next week",
+    "source_message": "Can you book a call next week?",
+    "required_fields_ok": true
+  },
+  "source_type": "chat"
+}

@@ -1,0 +1,11 @@
+{
+  "local": {
+    "tests": "10 passed (PHASE09_DISABLE_SUPABASE=1)"
+  },
+  "live": {
+    "generate_status": 200,
+    "latest_status": 200,
+    "latest_total_reviews": 93,
+    "latest_model_path": "deterministic_fallback"
+  }
+}

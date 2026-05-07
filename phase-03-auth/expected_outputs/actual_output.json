@@ -1,0 +1,9 @@
+{
+  "local": {
+    "tests": "14 passed"
+  },
+  "live": {
+    "status": "not_executed",
+    "reason": "requires browser OAuth interaction"
+  }
+}

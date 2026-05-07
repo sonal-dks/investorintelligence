@@ -1,0 +1,8 @@
+{
+  "original": "My PAN is ABCDE1234F and phone 9876543210",
+  "cleaned": "My PAN is [REDACTED_PAN] and phone [REDACTED_PHONE]",
+  "findings": [
+    {"type": "PAN", "value": "ABCDE1234F", "position": [10, 20]},
+    {"type": "PHONE", "value": "9876543210", "position": [31, 41]}
+  ]
+}

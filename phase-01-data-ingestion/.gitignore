@@ -1,0 +1,6 @@
+.env
+.scrape_export/
+venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

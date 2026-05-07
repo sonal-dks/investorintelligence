@@ -1,0 +1,11 @@
+{
+  "week_start": "2026-05-04",
+  "overall_rating": 4.12,
+  "total_reviews": 87,
+  "summary_text": "This week we processed 87 reviews with strong sentiment and recurring themes around performance and SIP workflows. The pulse highlights where user trust can be increased with targeted fixes.",
+  "action_items": [
+    "Address the highest-frequency performance complaint this sprint.",
+    "Improve SIP workflow discoverability in the primary navigation.",
+    "Track sentiment shift after release against this pulse baseline."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "local": {
+    "tests": "57 passed"
+  },
+  "live": {
+    "status": "covered via phase-02 + phase-09 live dependencies; dedicated E2E runtime not assembled"
+  }
+}

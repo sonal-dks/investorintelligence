@@ -1,0 +1,19 @@
+{
+  "local": {
+    "tests": "37 passed"
+  },
+  "live": {
+    "refresh": {
+      "status": "success",
+      "funds_processed": 30,
+      "chunks_generated": 267,
+      "collection_size": 267,
+      "embedding_model_used": "BAAI/bge-large-en-v1.5"
+    },
+    "query_sample": {
+      "query": "What is STT in mutual funds?",
+      "top_hit_corpus": "mutual_fund",
+      "fee_explainer_present_in_results": true
+    }
+  }
+}

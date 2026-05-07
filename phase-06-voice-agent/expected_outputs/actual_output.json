@@ -1,0 +1,9 @@
+{
+  "local": {
+    "tests": "38 passed"
+  },
+  "live": {
+    "status": "not_executed",
+    "reason": "requires running voice frontend/browser microphone flow"
+  }
+}

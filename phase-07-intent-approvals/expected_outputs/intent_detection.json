@@ -1,0 +1,13 @@
+{
+  "intents": [
+    {
+      "type": "booking",
+      "confidence": 0.92,
+      "details": {
+        "topic": "my SIP review",
+        "time_preference": "next week"
+      },
+      "status": "confirmed"
+    }
+  ]
+}

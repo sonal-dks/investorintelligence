@@ -1,0 +1,22 @@
+{
+  "id": "msg-uuid-001",
+  "role": "assistant",
+  "content": "The expense ratio of Mirae Asset Flexi Cap Fund is 0.53% for the direct plan.",
+  "citations": [
+    {
+      "text": "Expense ratio of Mirae Asset Flexi Cap Fund Direct Growth: 0.53%",
+      "source_url": "https://groww.in/mutual-funds/mirae-asset-flexi-cap-fund-direct-growth",
+      "fund": "Mirae Asset Flexi Cap Fund"
+    }
+  ],
+  "metadata": {
+    "pii_detected": false,
+    "model_used": "anthropic/claude-3.5-sonnet",
+    "intent_type": "factual",
+    "retrieval_count": 3,
+    "response_time_ms": 2100,
+    "input_mode": "voice"
+  },
+  "voice_hint": "concise",
+  "created_at": "2026-05-07T14:00:00Z"
+}

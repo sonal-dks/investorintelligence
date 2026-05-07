@@ -1,0 +1,57 @@
+name: Weekly Evaluation + Report Sync
+
+on:
+  schedule:
+    # Every Monday at 7:00 AM IST (01:30 UTC), after weekly pulse scrape window
+    - cron: "30 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: phase-11-evaluation-suite
+
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_JUDGE_MODEL: ${{ vars.OPENROUTER_JUDGE_MODEL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: phase-11-evaluation-suite/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run evaluation and sync report
+        run: |
+          PYTHONPATH=. python - <<'PY'
+          import json
+          from pathlib import Path
+          from backend.services.evaluation_runner import EvaluationRunner
+
+          run, cases = EvaluationRunner().run("scheduled")
+          out = Path("expected_outputs")
+          out.mkdir(parents=True, exist_ok=True)
+          (out / "latest_run.json").write_text(json.dumps(run, default=str, indent=2), encoding="utf-8")
+          (out / "latest_cases.json").write_text(json.dumps(cases, default=str, indent=2), encoding="utf-8")
+          print("evaluation complete and Evals-Report.md synced")
+          PY
+
+      - name: Upload eval artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase11-eval-artifacts
+          path: phase-11-evaluation-suite/expected_outputs/*.json

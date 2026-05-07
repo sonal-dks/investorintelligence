@@ -1,0 +1,19 @@
+{
+  "booking_id": "booking-uuid",
+  "status_at_send": "confirmed",
+  "sends": [
+    {
+      "recipient_role": "user",
+      "recipient_email": "u***@example.com",
+      "gmail_message_id": "1781abc",
+      "deduped": false
+    },
+    {
+      "recipient_role": "advisor",
+      "recipient_email": "a***@nextleap.dev",
+      "gmail_message_id": "1781def",
+      "deduped": false
+    }
+  ],
+  "pulse_included": true
+}
