@@ -9,12 +9,20 @@ type Props = {
   role: UserRole;
 };
 
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  external?: boolean;
+  handoffSession?: boolean;
+};
+
 const smartSearchUrl = import.meta.env.VITE_SMART_SEARCH_URL ?? "http://127.0.0.1:5173/smart-search";
 const voiceAgentUrl = import.meta.env.VITE_VOICE_AGENT_URL ?? "http://127.0.0.1:5174/voice-agent";
 const weeklyPulseUrl = import.meta.env.VITE_WEEKLY_PULSE_URL ?? "http://127.0.0.1:5176";
 const bookingsUrl = import.meta.env.VITE_BOOKINGS_URL ?? "http://127.0.0.1:5177";
 
-const commonItems = [
+const commonItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: smartSearchUrl, label: "Smart Search", icon: Bot, external: true, handoffSession: true },
   { to: weeklyPulseUrl, label: "Weekly Pulse", icon: Gauge, external: true, handoffSession: true },
@@ -22,7 +30,7 @@ const commonItems = [
   { to: bookingsUrl, label: "Bookings", icon: CalendarCheck2, external: true, handoffSession: true },
 ];
 
-const adminItems = [{ to: "/admin", label: "Approval Center", icon: ShieldCheck }];
+const adminItems: NavItem[] = [{ to: "/admin", label: "Approval Center", icon: ShieldCheck }];
 
 export function Sidebar({ role }: Props) {
   const { pathname } = useLocation();
