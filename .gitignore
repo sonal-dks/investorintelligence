@@ -28,3 +28,7 @@
 googleserviceaccount.json
 client_secret_*.json
 *credentials*.json
+
+# Phase-12 generated deploy artifacts
+backend-deploy/
+frontend-deploy/

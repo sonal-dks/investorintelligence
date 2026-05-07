@@ -1,0 +1,46 @@
+name: Deploy Prep - Phase 12
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  assemble-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run Phase-12 assembly
+        run: |
+          chmod +x phase-12-assembly-deploy/scripts/*.sh
+          phase-12-assembly-deploy/scripts/assemble-backend.sh
+          phase-12-assembly-deploy/scripts/assemble-frontend.sh
+
+      - name: Validate assembled backend entrypoint
+        run: python -m py_compile backend-deploy/app/main.py
+
+      - name: Build assembled frontend
+        working-directory: frontend-deploy
+        run: |
+          npm ci
+          npm run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase12-deploy-artifacts
+          path: |
+            backend-deploy
+            frontend-deploy/dist
