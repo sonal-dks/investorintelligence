@@ -95,6 +95,57 @@ This project solves that by building one connected system where users can move f
 5. **Booking/Approvals** use authenticated user context and approval rules for operational actions.
 6. **Evaluation suite** scores system behavior and writes report artifacts.
 
+## Architecture Diagrams
+
+### System View
+
+```mermaid
+flowchart LR
+    U[Investor/Admin User] --> FE[Frontend Apps]
+    FE --> AUTH[Phase 03 Auth]
+    FE --> DASH[Phase 04 Dashboard]
+    FE --> SEARCH[Phase 05 Smart Search]
+    FE --> VOICE[Phase 06 Voice Agent]
+    FE --> BOOK[Phase 08 Booking]
+    FE --> PULSE[Phase 09 Weekly Pulse]
+    FE --> EXP[Phase 10 Explorer/Resources]
+
+    SEARCH --> RAG[Phase 02 RAG Pipeline]
+    VOICE --> RAG
+    PULSE --> SB[(Supabase)]
+    BOOK --> APPR[Phase 07 Approvals]
+    APPR --> SB
+
+    ING[Phase 01 Ingestion] --> SB
+    ING --> RAG
+    RAG --> SB
+    EVAL[Phase 11 Evaluation Suite] --> SEARCH
+    EVAL --> VOICE
+    EVAL --> PULSE
+    EVAL --> SB
+```
+
+### Retrieval Path (Fund + Fee Corpora)
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Smart Search / Voice
+    participant Router as Intent Router
+    participant RAG as Retrieval Service
+    participant SB as Supabase
+
+    User->>App: Ask question
+    App->>Router: Detect query intent
+    Router->>RAG: Query with corpus_filter (if high confidence)
+    alt low confidence
+      Router->>RAG: Unified retrieval across both corpora
+    end
+    RAG->>SB: Fetch chunks/metadata
+    RAG-->>App: Grounded context + citations
+    App-->>User: Answer or refusal
+```
+
 ## Key Product Guarantees
 
 - No direct investment advice.
@@ -135,6 +186,24 @@ Set required `.env` values for the phases you run (Supabase/OpenRouter/auth and 
 ### 3) Start services
 
 Run backend and frontend services phase-by-phase as needed (see each phase `README.md` for exact commands and ports).
+
+## Local Dev Matrix (Quick Start by Phase)
+
+| Phase | Purpose | Backend Run | Frontend Run | Default Ports | Key Env (minimum) |
+|---|---|---|---|---|---|
+| `phase-01-data-ingestion` | Scrape + validate + write | `python run_scraper.py` | N/A | N/A | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
+| `phase-02-rag-pipeline` | Chunk/embed/retrieve | `uvicorn backend.app:app --reload --port 8002` | N/A | `8002` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY` |
+| `phase-03-auth` | Auth + profiles | `uvicorn backend.main:app --reload --port 8003` | `npm run dev` (in `frontend`) | `8003`, `5173` | Supabase project URL/key + JWT/auth settings |
+| `phase-04-dashboard` | Unified dashboard | `uvicorn backend.main:app --reload --port 8004` | `npm run dev` (in `frontend`) | `8004`, `5174` | Dashboard API base + Supabase public keys |
+| `phase-05-smart-search` | RAG chat UI/API | `uvicorn backend.main:app --reload --port 8005` | `npm run dev` (in `frontend`) | `8005`, `5175` | `OPENROUTER_API_KEY`, RAG API base, Supabase vars |
+| `phase-06-voice-agent` | Voice + text assistant | `uvicorn backend.main:app --reload --port 8006` | `npm run dev` (in `frontend`) | `8006`, `5176` | `OPENROUTER_API_KEY`, Supabase vars, voice frontend env |
+| `phase-07-intent-approvals` | Approval workflow | `uvicorn backend.main:app --reload --port 8007` | (integrated via host UIs) | `8007` | Supabase vars, approval-service env |
+| `phase-08-calendar-booking` | Booking + email/calendar | `uvicorn backend.main:app --reload --port 8008` | `npm run dev` (in `frontend`) | `8008`, `5177` | Supabase vars, Google/Gmail/calendar credentials |
+| `phase-09-weekly-pulse` | Review analytics + summary | `uvicorn backend.main:app --reload --port 8009` | `npm run dev` (in `frontend`) | `8009`, `5178` | Supabase vars, `OPENROUTER_API_KEY` |
+| `phase-10-explorer-resources` | Fund explorer + fee hub | `uvicorn backend.main:app --reload --port 8010` | `npm run dev` (in `frontend`) | `8010`, `5179` | Supabase vars |
+| `phase-11-evaluation-suite` | Evals + report sync | `uvicorn backend.main:app --reload --port 8011` | N/A | `8011` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY` |
+
+> Note: exact port/env naming can differ slightly by phase; each phase-level `README.md` and `.env` is the source of truth for that module.
 
 ## Scheduling and Automation
 
