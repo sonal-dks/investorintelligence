@@ -43,7 +43,7 @@ Each phase has a dedicated edge-case and success-criteria file:
 | 07 | AI Intent Detection + Approval Center | Phase 05, 06 | Backend + Frontend |
 | 08 | Google Calendar + Booking System | Phase 07 | Backend + Frontend |
 | 09 | Weekly Pulse (Review Intelligence) | Phase 01 | Backend + Frontend |
-| 10 | Mutual Fund Explorer + Resource Hub | Phase 01 | Backend + Frontend |
+| 10 | Mutual Fund Explorer | Phase 01 | Backend + Frontend |
 | 11 | Evaluation Suite | Phase 05, 09 | Backend + Frontend |
 | 12 | Assembly + Deployment | All prior phases | DevOps |
 

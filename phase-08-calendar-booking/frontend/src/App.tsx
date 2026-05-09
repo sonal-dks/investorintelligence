@@ -53,38 +53,36 @@ export function App() {
   });
 
   return (
-    <div style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
-      <h1 style={{ marginTop: 0 }}>Phase 08 — Calendar & bookings</h1>
-      <p style={{ color: "#475569", fontSize: "0.95rem" }}>
+    <div className="mx-auto max-w-6xl space-y-4 px-4 py-4">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h1 className="text-xl font-semibold">Calendar & Bookings</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
         Point <code>VITE_API_BASE</code> at the Phase 08 API (e.g. <code>http://127.0.0.1:8090</code>). Admin actions use{" "}
         <code>x-user-role: admin</code> (set in API client).
-      </p>
+        </p>
+      </div>
 
-      <div style={{ display: "grid", gap: 24, gridTemplateColumns: "1fr 1fr" }}>
-        <section>
-          <h2>Calendar</h2>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="mb-3 text-sm font-semibold">Calendar</h2>
           <CalendarTab />
         </section>
-        <section>
-          <h2>Bookings</h2>
+        <section className="rounded-xl border border-border bg-card p-4">
+          <h2 className="mb-3 text-sm font-semibold">Bookings</h2>
           {bookingsQ.isLoading && <p>Loading…</p>}
-          {bookingsQ.isError && <p style={{ color: "#b91c1c" }}>Failed to load bookings.</p>}
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {bookingsQ.isError && <p className="text-sm text-rose-600">Failed to load bookings.</p>}
+          <ul className="m-0 list-none space-y-2 p-0">
             {(bookingsQ.data ?? []).map((b) => (
               <li key={b.id}>
                 <button
                   type="button"
                   onClick={() => setSelectedId(b.id)}
-                  style={{
-                    width: "100%",
-                    textAlign: "left",
-                    marginBottom: 6,
-                    border: selectedId === b.id ? "2px solid #0f766e" : "1px solid #e2e8f0",
-                    background: selectedId === b.id ? "#ecfdf5" : "#fff",
-                  }}
+                  className={`w-full rounded-lg border p-3 text-left ${
+                    selectedId === b.id ? "border-primary bg-muted" : "border-border bg-background"
+                  }`}
                 >
                   <strong>{b.booking_code}</strong> · {b.topic}
-                  <div style={{ marginTop: 4 }}>
+                  <div className="mt-1">
                     <BookingStatusBadge status={b.status} />
                   </div>
                 </button>
@@ -92,17 +90,17 @@ export function App() {
             ))}
           </ul>
           {!bookingsQ.data?.length && !bookingsQ.isLoading && (
-            <p style={{ color: "#64748b", fontSize: "0.9rem" }}>
+            <p className="text-sm text-muted-foreground">
               No bookings yet. Create one via <code>POST /api/bookings</code> (admin).
             </p>
           )}
         </section>
       </div>
 
-      <section style={{ marginTop: 24 }}>
-        <h2>Booking detail</h2>
+      <section className="rounded-xl border border-border bg-card p-4">
+        <h2 className="mb-3 text-sm font-semibold">Booking detail</h2>
         {selected && (
-          <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 16 }}>
+          <div className="rounded-lg border border-border bg-background p-4">
             <p>
               <strong>Code:</strong> {selected.booking_code} · <BookingStatusBadge status={selected.status} />
             </p>
@@ -125,7 +123,7 @@ export function App() {
               }}
             />
             {(mConfirm.isError || mCancel.isError || mSend.isError) && (
-              <p style={{ color: "#b91c1c", fontSize: "0.85rem" }}>Action failed — check API logs.</p>
+              <p className="text-xs text-rose-600">Action failed — check API logs.</p>
             )}
             <BookingEmailHistory bookingId={selected.id} />
           </div>

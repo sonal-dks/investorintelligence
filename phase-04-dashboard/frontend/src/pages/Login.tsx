@@ -22,7 +22,7 @@ export function LoginPage() {
     });
   }
 
-  if (isLoading) {
+  if (isLoading && session && !profile) {
     return (
       <div className="flex min-h-screen items-center justify-center text-muted-foreground">
         Completing sign-in…

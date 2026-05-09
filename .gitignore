@@ -32,3 +32,10 @@ client_secret_*.json
 # Phase-12 generated deploy artifacts
 backend-deploy/
 frontend-deploy/
+
+# Local Playwright browser cache / machine-specific env
+.playwright/
+longlist.env
+
+# Phase-01 scrape snapshots (regenerated locally)
+phase-01-data-ingestion/expected_outputs/actual_output/

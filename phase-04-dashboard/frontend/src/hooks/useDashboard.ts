@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchBookingSummary, fetchFundStrip, fetchKPIs, fetchPulsePreview } from "../lib/api";
+import { fetchBookingSummary, fetchDashboardOverview, fetchFundStrip, fetchKPIs, fetchPulsePreview } from "../lib/api";
 import { useAuthStore } from "../stores/auth-store";
 
 function useAccessToken() {
@@ -24,6 +24,16 @@ export function useBookings() {
     queryFn: () => fetchBookingSummary(token),
     enabled: Boolean(token),
     staleTime: 60_000,
+  });
+}
+
+export function useDashboardOverview() {
+  const token = useAccessToken();
+  return useQuery({
+    queryKey: ["dashboard-overview", token],
+    queryFn: () => fetchDashboardOverview(token),
+    enabled: Boolean(token),
+    staleTime: 30_000,
   });
 }
 

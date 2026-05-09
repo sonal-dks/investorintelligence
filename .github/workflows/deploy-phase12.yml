@@ -28,6 +28,9 @@ jobs:
           phase-12-assembly-deploy/scripts/assemble-backend.sh
           phase-12-assembly-deploy/scripts/assemble-frontend.sh
 
+      - name: Install embedded phase-07 frontend deps (unified TS build)
+        run: npm ci --prefix phase-07-intent-approvals/frontend
+
       - name: Validate assembled backend entrypoint
         run: python -m py_compile backend-deploy/app/main.py
 

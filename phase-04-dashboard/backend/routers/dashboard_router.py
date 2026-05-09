@@ -4,7 +4,13 @@ from fastapi import APIRouter, Depends
 
 from backend.config import Settings, get_settings
 from backend.deps import get_current_user_id
-from backend.models.schemas import BookingSummaryResponse, FundStripResponse, KPIResponse, PulsePreviewResponse
+from backend.models.schemas import (
+    BookingSummaryResponse,
+    DashboardOverviewResponse,
+    FundStripResponse,
+    KPIResponse,
+    PulsePreviewResponse,
+)
 from backend.services.dashboard_service import DashboardService
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -20,6 +26,14 @@ def get_kpis(
     svc: DashboardService = Depends(get_dashboard_service),
 ) -> KPIResponse:
     return svc.get_kpis(user_id)
+
+
+@router.get("/overview", response_model=DashboardOverviewResponse)
+def get_overview(
+    user_id: str = Depends(get_current_user_id),
+    svc: DashboardService = Depends(get_dashboard_service),
+) -> DashboardOverviewResponse:
+    return svc.get_overview(user_id)
 
 
 @router.get("/bookings", response_model=BookingSummaryResponse)

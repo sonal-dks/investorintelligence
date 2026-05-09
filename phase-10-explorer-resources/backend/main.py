@@ -4,9 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.routers.fund_router import router as fund_router
-from backend.routers.resource_router import router as resource_router
 
-app = FastAPI(title="Phase 10 Explorer + Resources API", version="0.1.0")
+app = FastAPI(title="Phase 10 Mutual Fund Explorer API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,9 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(fund_router)
-app.include_router(resource_router)
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "ok", "phase": "10-explorer-resources"}
+    return {"status": "ok", "phase": "10-explorer"}

@@ -30,23 +30,3 @@ class FundsSummary(BaseModel):
 class FundsResponse(BaseModel):
     funds: list[Fund]
     summary: FundsSummary
-
-
-class FeeItem(BaseModel):
-    category: str
-    description: str
-    typical_range: str | None = None
-    applicable_to: str | None = None
-    notes: str | None = None
-
-
-class FeeSection(BaseModel):
-    fee_type: str
-    title: str
-    items: list[FeeItem]
-
-
-class FeeExplainerResponse(BaseModel):
-    sections: list[FeeSection]
-    last_updated: str | None = None
-    source_url: str | None = None

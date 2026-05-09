@@ -22,6 +22,16 @@ phase-12-assembly-deploy/scripts/assemble-backend.sh
 phase-12-assembly-deploy/scripts/assemble-frontend.sh
 ```
 
+### Unified local development
+
+From the **repository root**, after `npm install` at the repo root and `npm ci --prefix phase-07-intent-approvals/frontend` (needed for TypeScript when building the embedded Approval Center):
+
+```bash
+npm run dev:all
+```
+
+This runs `assemble-backend.sh`, then **concurrently** starts the assembled FastAPI app on **127.0.0.1:8012** and the Phase 04 Vite dev server (port **5180**), with the dashboard proxying `/api` traffic to the assembled API. Use an empty `VITE_API_BASE` in the dashboard `.env` for same-origin requests through the proxy.
+
 Outputs:
 - `backend-deploy/`
 - `frontend-deploy/`

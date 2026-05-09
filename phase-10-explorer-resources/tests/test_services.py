@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from backend.services.fee_explainer_service import FeeExplainerService
 from backend.services.fund_explorer_service import FundExplorerService
 
 
@@ -26,14 +25,3 @@ def test_summary_calculation():
     assert summary["tracked_funds"] == 2
     assert summary["avg_expense_ratio"] == 0.6
     assert summary["high_risk_funds"] == 1
-
-
-def test_fee_sections_grouping():
-    svc = FeeExplainerService()
-    rows = [
-        {"fee_type": "exit_load", "category": "Equity", "description": "d1", "last_updated": "2026-05-05T00:00:00Z"},
-        {"fee_type": "expense_ratio", "category": "Direct", "description": "d2", "last_updated": "2026-05-06T00:00:00Z"},
-    ]
-    payload = svc.build_sections(rows)
-    assert len(payload["sections"]) == 2
-    assert payload["last_updated"] == "2026-05-06T00:00:00Z"

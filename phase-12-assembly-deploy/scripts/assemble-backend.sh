@@ -4,33 +4,45 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT_DIR="${ROOT_DIR}/backend-deploy"
 TMP_REQ="${OUT_DIR}/requirements._all.txt"
+PACKAGES_DIR="${OUT_DIR}/packages"
 
 echo "[phase-12] Assembling backend into ${OUT_DIR}"
 rm -rf "${OUT_DIR}"
-mkdir -p "${OUT_DIR}/app" "${OUT_DIR}/phases"
+mkdir -p "${OUT_DIR}/app" "${PACKAGES_DIR}"
 
-PHASE_BACKENDS=(
-  "phase-03-auth/backend"
-  "phase-04-dashboard/backend"
-  "phase-05-smart-search/backend"
-  "phase-06-voice-agent/backend"
-  "phase-07-intent-approvals/backend"
-  "phase-08-calendar-booking/backend"
-  "phase-09-weekly-pulse/backend"
-  "phase-10-explorer-resources/backend"
-  "phase-11-evaluation-suite/backend"
-)
+rewrite_backend_imports() {
+  local pkg_dir="$1"
+  local pkg_name="$2"
+  while IFS= read -r -d '' f; do
+    perl -pi -e "s/from backend\\./from ${pkg_name}./g" "$f"
+    perl -pi -e "s/from backend import/from ${pkg_name} import/g" "$f"
+    perl -pi -e "s/import backend\\.config/import ${pkg_name}.config/g" "$f"
+  done < <(find "${pkg_dir}" -name '*.py' -print0)
+}
 
-# Phase-02 uses backend/app.py rather than backend/main.py
-mkdir -p "${OUT_DIR}/phases/phase-02-rag-pipeline"
-cp -R "${ROOT_DIR}/phase-02-rag-pipeline/backend" "${OUT_DIR}/phases/phase-02-rag-pipeline/"
+copy_isolated() {
+  local rel_src="$1"
+  local pkg_name="$2"
+  local dest="${PACKAGES_DIR}/${pkg_name}"
+  rm -rf "${dest}"
+  cp -R "${ROOT_DIR}/${rel_src}" "${dest}"
+  touch "${dest}/__init__.py"
+  rewrite_backend_imports "${dest}" "${pkg_name}"
+}
 
-for phase_backend in "${PHASE_BACKENDS[@]}"; do
-  phase_name="$(echo "${phase_backend}" | cut -d'/' -f1)"
-  mkdir -p "${OUT_DIR}/phases/${phase_name}"
-  cp -R "${ROOT_DIR}/${phase_backend}" "${OUT_DIR}/phases/${phase_name}/"
-done
+# Unique package names avoid import collisions in one interpreter.
+copy_isolated "phase-02-rag-pipeline/backend" "backend_ph02"
+copy_isolated "phase-03-auth/backend" "backend_ph03"
+copy_isolated "phase-04-dashboard/backend" "backend_ph04"
+copy_isolated "phase-05-smart-search/backend" "backend_ph05"
+copy_isolated "phase-06-voice-agent/backend" "backend_ph06"
+copy_isolated "phase-07-intent-approvals/backend" "backend_ph07"
+copy_isolated "phase-08-calendar-booking/backend" "backend_ph08"
+copy_isolated "phase-09-weekly-pulse/backend" "backend_ph09"
+copy_isolated "phase-10-explorer-resources/backend" "backend_ph10"
+copy_isolated "phase-11-evaluation-suite/backend" "backend_ph11"
 
+touch "${OUT_DIR}/app/__init__.py"
 cp "${ROOT_DIR}/phase-12-assembly-deploy/templates/backend_main.py" "${OUT_DIR}/app/main.py"
 cp "${ROOT_DIR}/phase-12-assembly-deploy/templates/render.yaml" "${OUT_DIR}/render.yaml"
 

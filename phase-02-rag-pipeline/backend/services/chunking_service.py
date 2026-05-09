@@ -113,13 +113,34 @@ def _extract_exit_load_rule(exit_load_text: str | None) -> str | None:
 
 def _format_returns(fund: dict) -> str | None:
     parts: list[str] = []
-    for label, key in (("1Y", "returns_1y"), ("3Y", "returns_3y"), ("5Y", "returns_5y")):
+    for label, key in (
+        ("1M", "returns_1m"),
+        ("6M", "returns_6m"),
+        ("1Y", "returns_1y"),
+        ("3Y", "returns_3y"),
+        ("5Y", "returns_5y"),
+    ):
         val = fund.get(key)
         if val is not None:
             parts.append(f"{label}: {val}%")
     if not parts:
         return None
     return f"{fund['fund_name']} returns — {', '.join(parts)}."
+
+
+def _format_return_calculator_rows(name: str, label: str, rows: list[dict] | None) -> str | None:
+    if not rows:
+        return None
+    parts: list[str] = []
+    for row in rows[:4]:
+        period = row.get("period")
+        ret = row.get("return_pct")
+        if period is None or ret is None:
+            continue
+        parts.append(f"{period}: {ret}%")
+    if not parts:
+        return None
+    return f"{name} return calculator ({label}) — {', '.join(parts)}."
 
 
 def chunk_fund(fund: dict) -> list[Chunk]:
@@ -181,14 +202,46 @@ def chunk_fund(fund: dict) -> list[Chunk]:
     min_sip = fund.get("min_sip")
     if min_sip is not None:
         add("min_sip", f"Minimum SIP for {name}: ₹{min_sip}.")
+    min_lumpsum_first = fund.get("min_lumpsum_first")
+    min_lumpsum_second = fund.get("min_lumpsum_second")
+    if min_lumpsum_first is not None:
+        text = f"Minimum one-time investment for {name}: ₹{min_lumpsum_first}."
+        if min_lumpsum_second is not None:
+            text += f" Additional investments: ₹{min_lumpsum_second}."
+        add("min_lumpsum", text)
 
     risk = fund.get("risk_level")
     if risk:
         add("risk_level", f"Risk level of {name}: {risk}.")
+    rating = fund.get("rating")
+    if rating is not None:
+        add("rating", f"Rating for {name}: {rating} out of 5.")
+    lock_in = fund.get("lock_in_period")
+    if lock_in:
+        add("lock_in_period", f"Lock-in period for {name}: {lock_in}.")
+    one_day_return_pct = fund.get("one_day_return_pct")
+    if one_day_return_pct is not None:
+        add("one_day_return_pct", f"1D return for {name}: {one_day_return_pct}%.")
 
     returns_text = _format_returns(fund)
     if returns_text:
         add("returns", returns_text)
+    if fund.get("returns_10y") is not None:
+        add("returns_10y", f"10Y return for {name}: {fund.get('returns_10y')}%.")
+    if fund.get("returns_since_inception") is not None:
+        add(
+            "returns_since_inception",
+            f"Return since inception for {name}: {fund.get('returns_since_inception')}%.",
+        )
+
+    rc_sip = _format_return_calculator_rows(name, "SIP", fund.get("return_calculator_sip"))
+    if rc_sip:
+        add("return_calculator_sip", rc_sip)
+    rc_one_time = _format_return_calculator_rows(
+        name, "one-time", fund.get("return_calculator_one_time")
+    )
+    if rc_one_time:
+        add("return_calculator_one_time", rc_one_time)
 
     exit_rule = _extract_exit_load_rule(fund.get("exit_load_text"))
     if exit_rule:
@@ -197,6 +250,22 @@ def chunk_fund(fund: dict) -> list[Chunk]:
     tax_rule = _extract_tax_rule(fund.get("tax_text"))
     if tax_rule:
         add("tax", f"Tax for {name}: {tax_rule}")
+    stamp_duty = fund.get("stamp_duty_text")
+    if stamp_duty:
+        add("stamp_duty", f"Stamp duty for {name}: {stamp_duty}")
+    benchmark = fund.get("benchmark")
+    if benchmark:
+        add("benchmark", f"Benchmark for {name}: {benchmark}.")
+    objective = fund.get("investment_objective")
+    if objective:
+        add("investment_objective", f"Investment objective for {name}: {objective}")
+    manager = fund.get("fund_manager_name")
+    tenure = fund.get("fund_manager_tenure")
+    if manager:
+        manager_text = f"Fund manager for {name}: {manager}."
+        if tenure:
+            manager_text += f" Tenure: {tenure}."
+        add("fund_manager", manager_text)
 
     desc_parts: list[str] = [f"{name} ({category})"]
     if nav is not None:
@@ -207,8 +276,12 @@ def chunk_fund(fund: dict) -> list[Chunk]:
         desc_parts.append(f"expense {expense_ratio}%")
     if min_sip is not None:
         desc_parts.append(f"min SIP ₹{min_sip}")
+    if min_lumpsum_first is not None:
+        desc_parts.append(f"min one-time ₹{min_lumpsum_first}")
     if risk:
         desc_parts.append(f"risk {risk}")
+    if one_day_return_pct is not None:
+        desc_parts.append(f"1D return {one_day_return_pct}%")
     if exit_rule:
         desc_parts.append(f"exit load: {exit_rule}")
 

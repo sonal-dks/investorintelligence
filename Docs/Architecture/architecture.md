@@ -15,7 +15,7 @@
 7. Phase 07 - AI Intent Detection + Approval Center
 8. Phase 08 - Google Calendar + Booking System
 9. Phase 09 - Weekly Pulse (Review Intelligence)
-10. Phase 10 - Mutual Fund Explorer + Resource Hub
+10. Phase 10 - Mutual Fund Explorer
 11. Phase 11 - Evaluation Suite
 12. Phase 12 - Assembly + Deployment
 
@@ -190,7 +190,7 @@ Set these in local `.env` (backend), `.env` / Vite env (frontend), and GitHub Ac
 
 ---
 
-### Phase 10 — Mutual fund explorer + resource hub
+### Phase 10 — Mutual fund explorer
 
 | Item | Requirement |
 |------|-------------|
@@ -302,11 +302,17 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
 ### Scope
 #### In Scope
 - Playwright-based scraper for 30 Groww mutual fund pages
-- Google Play review scraper for Groww app
+- Google Play review scraper for Groww app with 60-day lookback pagination
 - Supabase table creation (mutual_fund_data, app_reviews)
 - GitHub Action for weekly automated scraping
 - Error handling for individual URL failures (partial success allowed)
 - Data validation before insert
+- Review cleaning before insert:
+  - Keep only English-like reviews
+  - Drop harmful/profane reviews
+  - Drop reviews shorter than 5 words
+- Supabase schema extension for mutual funds:
+  - Additional persisted fields for extended scrape output (lock-in, one-time minimums, benchmark/objective/manager, calculator/rankings/holding/ratio JSON blocks, FAQs)
 
 #### Out of Scope
 - RAG chunking/embedding (Phase 02)
@@ -325,16 +331,19 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
 - Decision: Partial success model (scraper continues if single URL fails)
   - Rationale: One fund page being down should not block all other data
   - Tradeoff: Need monitoring to detect persistent per-URL failures
+- Decision: Review writes are idempotent on `review_id` (upsert with duplicate ignore)
+  - Rationale: 60-day rolling re-scrapes naturally overlap prior runs
+  - Tradeoff: Inserts may report fewer newly written rows than fetched/validated rows
 
 ### Backend Architecture
 - Services:
-  - `MutualFundScraper` — navigates Groww pages, extracts fund data fields
-  - `ReviewScraper` — uses google-play-scraper to fetch latest reviews
+  - `MutualFundScraper` — navigates Groww pages, extracts fund data fields including tabbed sections (one-time calculator, annualised vs absolute returns)
+  - `ReviewScraper` — uses google-play-scraper with continuation-token pagination to fetch reviews within the last 60 days
   - `DataValidator` — validates scraped data against expected schema before insert
   - `SupabaseWriter` — batch inserts validated data to Supabase
 - APIs: None exposed (this is a batch job, not an API service)
 - Data:
-  - `mutual_fund_data` table: fund_slug, fund_name, category, nav, nav_date, aum_cr, expense_ratio, min_sip, risk_level, returns_1m, returns_6m, returns_1y, returns_3y, returns_5y, exit_load_text, tax_text, source_url, scraped_at
+  - `mutual_fund_data` table: fund_slug, fund_name, category, nav, nav_date, aum_cr, expense_ratio, min_sip, risk_level, returns_1m, returns_6m, returns_1y, returns_3y, returns_5y, exit_load_text, tax_text, source_url, scraped_at (plus extended scrape-only fields in artifacts: 1D return, one-time calculator rows, absolute-return tab values, holding analysis, sector allocation, advanced ratios, FAQ items)
   - `app_reviews` table: review_id, reviewer_name, rating, review_text, review_date, thumbs_up, app_version, scraped_at
   - `fee_explainer_data` (Phase 10): curated explanation rows (`fee_type`, `category`, `description`, …) — **not scraped in Phase 01**, but Phase 02 RAG refresh reads this table from Supabase when (re)building the vector index
 - Jobs/events:
@@ -342,6 +351,7 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
 - GitHub Action `weekly-scrape.yml`: runs every Monday at 6 AM IST for app-review scraping (`--skip-funds`)
   - Manual trigger via workflow_dispatch for on-demand scraping
   - Optional: `python phase-01-data-ingestion/run_scraper.py --refresh-rag` after a successful scrape to rebuild Phase 02 Chroma (mutual fund chunks + fee explainer narrative chunks)
+- Migration: `phase-01-data-ingestion/migrations/003_add_extended_mutual_fund_columns.sql` must be applied before writing extended fields
 - Security/compliance:
   - No PII scraped (reviews are public, fund data is public)
   - Respectful scraping: 2-second delay between page loads
@@ -364,6 +374,8 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
   - Mitigation: Scraper uses CSS selectors stored in config (not hardcoded). Validation catches empty/null fields. Alert on >50% field extraction failure.
 - Risk: Google Play scraper library breaks (unofficial)
   - Mitigation: Pin library version. Fallback: manual CSV import until fixed.
+- Risk: over-filtering in review cleaning removes too many reviews
+  - Mitigation: log dropped counts by reason (old/non-English/profane/too-short) and tune thresholds conservatively
 - Risk: GitHub Actions timeout on 30 pages
   - Mitigation: Parallel scraping (5 concurrent pages). Total budget: 10 minutes max.
 
@@ -379,14 +391,14 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
 
 ### Success Criteria
 - All 30 fund URLs scraped successfully with all required fields populated
-- At least 50 reviews scraped per run from Google Play
+- Reviews are fetched across pages for the last 60 days and cleaned per policy before insert
 - Data appears in Supabase tables with correct types and timestamps
 - GitHub Action completes within 10 minutes
 - Validation rejects malformed data (does not insert nulls for required fields)
 
 ### Exit Criteria
 - [ ] mutual_fund_data table populated with 30 rows from latest scrape
-- [ ] app_reviews table populated with 50+ reviews
+- [ ] app_reviews table populated with cleaned reviews from the last 60 days
 - [ ] GitHub Action runs successfully (manual trigger test)
 - [ ] Validation tests pass for both valid and invalid data
 - [ ] Expected output JSON fixtures match actual scraped structure
@@ -403,7 +415,7 @@ Build automated scrapers to ingest mutual fund data from 30 configured Groww URL
 
 ### Edge Cases and Test Coverage
 #### Edge Inventory
-- Inputs: Groww URL returns 404; page loads but fund data section missing; NAV field contains non-numeric text; review has empty text body
+- Inputs: Groww URL returns 404; page loads but fund data section missing; NAV field contains non-numeric text; review has empty text body; review is non-English/profane/<5 words
 - System: Supabase insert timeout; ChromaDB connection refused (not relevant yet); duplicate scrape within same day
 - Dependencies: Playwright browser fails to launch; google-play-scraper rate limited; Supabase API rate limit
 - User behavior: N/A (batch job, no user interaction)
@@ -884,7 +896,7 @@ Build a multi-session RAG chatbot that answers fund questions with citations, ma
 #### Out of Scope
 - Voice input (Phase 06)
 - Intent detection for approvals (Phase 07)
-- Resource Hub / Explorer UI for fee explainer (Phase 10); Smart Search still retrieves fee-explainer **chunks** from the shared RAG index when the user asks conceptual fee questions
+- Mutual Fund Explorer UI (Phase 10); Smart Search still retrieves fee-explainer **chunks** from the shared RAG index when the user asks conceptual fee questions
 
 ### PRD / Problem Mapping
 - Features: Feature 3 (Smart Search)
@@ -1753,17 +1765,15 @@ Build an automated review analysis pipeline that processes Google Play reviews i
 
 ---
 
-## Phase 10: Mutual Fund Explorer + Resource Hub
+## Phase 10: Mutual Fund Explorer
 
 ### Objective
-Build a searchable, filterable mutual fund explorer and a structured fee/tax explainer resource hub, both powered by the same scraped data used in the RAG pipeline.
+Build a searchable, filterable mutual fund explorer powered by the same scraped data used in the RAG pipeline.
 
 ### Scope
 #### In Scope
 - Mutual Fund Explorer: search, category filter, fund cards with all metrics
 - Summary bar (tracked funds count, avg expense ratio, high-risk count)
-- Resource Hub: Mutual Funds tab + Fee Explainer tab
-- Fee Explainer: exit load, expense ratio, capital gains, stamp duty sections
 - Source attribution on all content (Groww URL + scraped timestamp)
 - Scrape timestamp indicator
 
@@ -1773,14 +1783,11 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 - Fund recommendations (compliance: no advice)
 
 ### PRD / Problem Mapping
-- Features: Feature 6 (Mutual Fund Explorer), Feature 9 (Resource Hub)
+- Features: Feature 6 (Mutual Fund Explorer)
 - Problem statement: Problem 1 (self-serve fund info), Problem 6 (siloed data)
 - Constraints: Data from configured Groww links only; no advice; source attribution required
 
 ### Architecture Decisions
-- Decision: Fee explainer data seeded from scraper + stored in fee_explainer_data table
-  - Rationale: Fee rules are relatively static (exit load percentages, tax slabs). Seed once from official sources, update on weekly scrape if changes detected.
-  - Tradeoff: May lag behind regulatory changes by up to a week
 - Decision: Client-side search and filter (not server-side)
   - Rationale: 30 funds is small enough to load all at once. Client-side filtering is instantaneous. No need for server pagination.
   - Tradeoff: Would need to change if tracking 500+ funds (not in scope)
@@ -1788,14 +1795,11 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 ### Backend Architecture
 - Services:
   - `FundExplorerService` — returns all funds with latest data + summary stats
-  - `FeeExplainerService` — returns structured fee/tax data
 - APIs:
   - `GET /api/funds` — all funds with latest metrics
   - `GET /api/funds/summary` — tracked count, avg expense ratio, high-risk count, last scraped
-  - `GET /api/resources/fees` — structured fee explainer data
 - Data:
   - `mutual_fund_data` (from Phase 01): reads latest per fund_slug
-  - `fee_explainer_data`: id, fee_type (exit_load|expense_ratio|capital_gains|stamp_duty|stt), category, description, typical_range, applicable_to, notes, source_url, last_updated
 - Security/compliance:
   - Public data only; no user-specific access control needed
   - Source URL attribution on every piece of data
@@ -1803,12 +1807,11 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 ### Frontend Architecture
 - Routes/pages:
   - `/mutual-fund-explorer` — searchable fund grid
-  - `/resource-hub` — tabbed resource library
 - State/data-flow:
-  - TanStack Query: `useFunds()`, `useFundSummary()`, `useFeeExplainer()`
+  - TanStack Query: `useFunds()`, `useFundSummary()`
   - Local state: search term, active category filter (client-side filtering)
 - Client integration contracts:
-  - Backend fund/resource APIs
+  - Backend fund APIs
 - Failure states:
   - No fund data → "Data loading, please check back" with last scrape time
   - Search returns nothing → "No funds match your search" with clear filter option
@@ -1818,15 +1821,9 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
   - `MutualFundExplorerPage` → `SummaryBar` + `SearchInput` + `CategoryFilters` + `FundGrid`
   - `FundCard` — name, category badge, NAV, NAV date, AUM, expense ratio, min SIP, risk badge, returns (1Y/3Y/5Y)
   - `CategoryFilterPills` — All, Large Cap, Mid Cap, Small Cap, etc.
-- Component structure (Resource Hub):
-  - `ResourceHubPage` → `Tabs` (Mutual Funds | Fee Explainer)
-  - `FundListRow` — compact row with key metrics
-  - `FeeSection` (expandable) — exit load table, expense ratio ranges, tax rules
-  - `SourceAttribution` — Groww URL + timestamp
 - Core interactions:
   - Type in search → instant filter
   - Click category pill → filter by category
-  - Expand fee section → show detailed rules
 - Accessibility/responsive notes:
   - Fund grid: 2 cols mobile, 3-4 cols desktop
   - Search input has aria-label and role
@@ -1834,13 +1831,9 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 
 ### Deliverables
 - `phase-10-explorer-resources/backend/routers/fund_router.py`
-- `phase-10-explorer-resources/backend/routers/resource_router.py`
 - `phase-10-explorer-resources/backend/services/fund_explorer_service.py`
-- `phase-10-explorer-resources/backend/services/fee_explainer_service.py`
 - `phase-10-explorer-resources/frontend/src/pages/MutualFundExplorer.tsx`
-- `phase-10-explorer-resources/frontend/src/pages/ResourceHub.tsx`
 - `phase-10-explorer-resources/frontend/src/components/FundCard.tsx`
-- `phase-10-explorer-resources/frontend/src/components/FeeSection.tsx`
 - `phase-10-explorer-resources/tests/`
 - `phase-10-explorer-resources/expected_outputs/`
 
@@ -1849,14 +1842,12 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 - Search filters funds by name in real-time
 - Category filter works correctly
 - Summary bar shows accurate counts
-- Fee explainer sections are readable and sourced
 - Scrape timestamp visible and accurate
 
 ### Exit Criteria
 - [ ] Fund explorer displays all tracked funds
 - [ ] Search and filter work together
 - [ ] Summary bar matches underlying data
-- [ ] Fee explainer sections render with source attribution
 - [ ] Responsive layout at all breakpoints
 - [ ] All tests pass
 
@@ -1891,13 +1882,13 @@ Build a searchable, filterable mutual fund explorer and a structured fee/tax exp
 
 #### Edge-Case Test Plan
 - Unit: Search filter logic; category filter; null field handling; summary calculations
-- Integration: Fund API with incomplete data; fee API with missing sections
-- E2E: Search → filter → verify card content → switch to Resource Hub → verify fees
+- Integration: Fund API with incomplete data
+- E2E: Search → filter → verify card content
 
 ### Implementation Status
 - Implemented in `phase-10-explorer-resources/`:
-  - Backend APIs: `GET /api/funds`, `GET /api/funds/summary`, `GET /api/resources/fees`
-  - Frontend pages/components: explorer grid/cards and resource hub fee sections
+  - Backend APIs: `GET /api/funds`, `GET /api/funds/summary`
+  - Frontend pages/components: explorer grid/cards
   - Coverage: service/API tests plus expected output artifact
 
 ---

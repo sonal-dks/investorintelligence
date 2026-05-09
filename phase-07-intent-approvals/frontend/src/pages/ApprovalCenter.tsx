@@ -29,9 +29,12 @@ export function ApprovalCenterPage() {
   );
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-card p-5">
         <h1 className="text-xl font-semibold">Approval Center</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Review and approve investor-triggered actions.</p>
+      </div>
+      <div className="flex items-center justify-between rounded-xl border border-border bg-card p-3">
         <div className="flex gap-2">
           {(["all", "pending", "approved", "rejected"] as const).map((f) => (
             <button
@@ -46,7 +49,7 @@ export function ApprovalCenterPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 rounded-xl border border-border bg-card p-4">
         <ApprovalList items={approvalsQuery.data?.items ?? []} selectedId={selectedApprovalId} onSelect={setSelected} />
         <ApprovalDetail
           approval={selected}

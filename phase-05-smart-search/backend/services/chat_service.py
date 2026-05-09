@@ -60,6 +60,11 @@ SAFETY_RESPONSE = (
     "How can I help you with mutual fund information today?"
 )
 
+RAG_GUARDRAIL_REFUSAL = (
+    "I do not have enough verified context from the knowledge base to answer that safely. "
+    "Please ask about a specific fund, fee, return metric, or booking workflow present in the platform data."
+)
+
 
 class ChatService:
     def __init__(
@@ -206,6 +211,26 @@ class ChatService:
             retrieval_result = self._retrieve(cleaned_text, corpus_filter=None)
 
         context_chunks = retrieval_result.results if retrieval_result else []
+        if len(context_chunks) == 0:
+            return self._build_response(
+                message_id=message_id,
+                session_id=session_id,
+                user_id=user_id,
+                user_content=content,
+                assistant_content=RAG_GUARDRAIL_REFUSAL,
+                citations=[],
+                metadata={
+                    "pii_detected": pii_detected,
+                    "model_used": "none",
+                    "intent_type": intent.intent_type,
+                    "intent_confidence": intent.confidence,
+                    "refusal_triggered": True,
+                    "guardrail_reason": "no_retrieval_context",
+                    **corpus_meta,
+                    "response_time_ms": int((time.time() - started) * 1000),
+                },
+                now_iso=now_iso,
+            )
 
         context_text = "\n\n".join(
             f"[{i+1}] {chunk.text}" for i, chunk in enumerate(context_chunks)
@@ -227,6 +252,9 @@ class ChatService:
         llm_response = self._llm.generate(messages)
         assistant_text = llm_response.text
         model_used = llm_response.model
+        judge_result = self._judge_grounding(cleaned_text, context_text, assistant_text)
+        if judge_result != "PASS":
+            assistant_text = RAG_GUARDRAIL_REFUSAL
 
         if context_chunks and retrieval_result and retrieval_result.resolved_fund_slug:
             assistant_text = assistant_text.rstrip()
@@ -275,6 +303,7 @@ class ChatService:
                 "completion_tokens": llm_response.completion_tokens,
                 "total_tokens": llm_response.total_tokens,
                 "cost_usd": llm_response.cost_usd,
+                "judge_result": judge_result,
             },
             now_iso=now_iso,
         )
@@ -288,6 +317,30 @@ class ChatService:
             thread.start()
 
         return response
+
+    def _judge_grounding(self, user_query: str, context_text: str, assistant_text: str) -> str:
+        judge_prompt = (
+            "You are a strict RAG safety judge.\n"
+            "Return only PASS or FAIL.\n"
+            "PASS only if the assistant answer is fully supported by the provided context. "
+            "If it adds facts not present in context, return FAIL.\n\n"
+            f"USER_QUERY:\n{user_query}\n\n"
+            f"CONTEXT:\n{context_text}\n\n"
+            f"ASSISTANT_ANSWER:\n{assistant_text}\n"
+        )
+        try:
+            judge = self._llm.generate(
+                [
+                    {"role": "system", "content": "You output only PASS or FAIL."},
+                    {"role": "user", "content": judge_prompt},
+                ],
+                max_tokens=5,
+            )
+            out = (judge.text or "").strip().upper()
+            return "PASS" if out.startswith("PASS") else "FAIL"
+        except Exception:
+            logger.exception("judge_check_failed")
+            return "FAIL"
 
     def _build_response(
         self,

@@ -1,20 +1,237 @@
 {
-  "fund_slug": "mirae-asset-large-cap-fund-direct-growth",
-  "fund_name": "Mirae Asset Large Cap Fund Direct Growth",
-  "category": "Large Cap",
-  "nav": 105.4321,
-  "nav_date": "2026-05-05",
-  "aum_cr": 43215.67,
-  "expense_ratio": 0.53,
+  "fund_slug": "mirae-asset-elss-tax-saver-fund-direct-growth",
+  "fund_name": "Mirae Asset ELSS Tax Saver Fund Direct Growth",
+  "category": "ELSS",
+  "asset_class": "Equity",
+  "subcategory_tags": [
+    "ELSS",
+    "3Y Lock-in"
+  ],
+  "lock_in_period": "3 years",
+  "risk_level": "Very High",
+  "rating": 3,
+  "nav": 56.11,
+  "nav_date": "2026-05-07",
+  "aum_cr": 22940.33,
+  "expense_ratio": 0.86,
   "min_sip": 500,
-  "risk_level": "Moderately High",
-  "returns_1m": 2.45,
-  "returns_6m": 8.12,
-  "returns_1y": 15.67,
-  "returns_3y": 12.34,
-  "returns_5y": 14.89,
-  "exit_load_text": "1% if redeemed within 1 year",
-  "tax_text": "LTCG: 10% above ₹1L after 1 year; STCG: 15% within 1 year",
-  "source_url": "https://groww.in/mutual-funds/mirae-asset-large-cap-fund-direct-growth",
-  "scraped_at": "2026-05-06T06:00:00Z"
+  "min_lumpsum_first": 500,
+  "min_lumpsum_second": 500,
+  "one_day_return_pct": 0.29,
+  "returns_1d": 0.29,
+  "returns_1m": 8.27,
+  "returns_6m": -1.77,
+  "returns_1y": 7.96,
+  "returns_3y": 17.2,
+  "returns_5y": 14.8,
+  "returns_10y": 18.8,
+  "returns_since_inception": 18.1,
+  "return_calculator_sip": [
+    {
+      "period": "1 year",
+      "total_investment": 60000,
+      "would_have_become": 60759,
+      "historic_return_pct": 1.26
+    },
+    {
+      "period": "3 years",
+      "total_investment": 180000,
+      "would_have_become": 206687,
+      "historic_return_pct": 14.83
+    },
+    {
+      "period": "5 years",
+      "total_investment": 300000,
+      "would_have_become": 409196,
+      "historic_return_pct": 36.4
+    },
+    {
+      "period": "10 years",
+      "total_investment": 600000,
+      "would_have_become": 1419785,
+      "historic_return_pct": 136.63
+    }
+  ],
+  "return_calculator_one_time": [
+    {
+      "period": "1 year",
+      "total_investment": 500,
+      "would_have_become": 540,
+      "return_pct": 8.0
+    },
+    {
+      "period": "3 years",
+      "total_investment": 500,
+      "would_have_become": 804,
+      "return_pct": 60.8
+    },
+    {
+      "period": "5 years",
+      "total_investment": 500,
+      "would_have_become": 996,
+      "return_pct": 99.2
+    },
+    {
+      "period": "10 years",
+      "total_investment": 500,
+      "would_have_become": 2809,
+      "return_pct": 461.8
+    }
+  ],
+  "returns_and_rankings_annualised": {
+    "fund_returns": {
+      "3y_pct": 17.2,
+      "5y_pct": 14.8,
+      "10y_pct": 18.8,
+      "all_pct": 18.1
+    },
+    "category_average": {
+      "name": "Equity ELSS",
+      "3y_pct": 16.4,
+      "5y_pct": 16.5,
+      "10y_pct": 14.0
+    },
+    "category_rank": {
+      "3y": 15,
+      "5y": 19,
+      "10y": 3
+    }
+  },
+  "returns_and_rankings_absolute": {
+    "fund_returns": {
+      "3y_pct": 57.8,
+      "5y_pct": 98.5,
+      "10y_pct": 444.7,
+      "all_pct": 448.4
+    },
+    "category_average": {
+      "name": "Equity ELSS",
+      "3y_pct": 57.5,
+      "5y_pct": 114.4,
+      "10y_pct": null,
+      "all_pct": null
+    },
+    "category_rank": {
+      "3y": 15,
+      "5y": 19,
+      "10y": 3,
+      "all": null
+    }
+  },
+  "holdings_count": 70,
+  "top_holdings": [
+    {
+      "name": "HDFC Bank Ltd.",
+      "sector": "Financial",
+      "instrument": "Equity",
+      "asset_pct": 9.35
+    },
+    {
+      "name": "ICICI Bank Ltd.",
+      "sector": "Financial",
+      "instrument": "Equity",
+      "asset_pct": 5.08
+    },
+    {
+      "name": "Reliance Industries Ltd.",
+      "sector": "Energy",
+      "instrument": "Equity",
+      "asset_pct": 3.97
+    },
+    {
+      "name": "State Bank of India",
+      "sector": "Financial",
+      "instrument": "Equity",
+      "asset_pct": 3.9
+    },
+    {
+      "name": "Axis Bank Ltd.",
+      "sector": "Financial",
+      "instrument": "Equity",
+      "asset_pct": 3.45
+    }
+  ],
+  "holding_analysis": {
+    "equity_pct": 99.83,
+    "cash_pct": 0.17
+  },
+  "sector_allocation": [
+    {
+      "sector": "Financial",
+      "asset_pct": 26.0
+    },
+    {
+      "sector": "Technology",
+      "asset_pct": 6.31
+    },
+    {
+      "sector": "Healthcare",
+      "asset_pct": 8.43
+    }
+  ],
+  "advanced_ratios": {
+    "top_5_pct": 26.0,
+    "top_20_pct": 62.0,
+    "pe_ratio": 18.86,
+    "pb_ratio": 2.91,
+    "alpha": 1.11,
+    "beta": 1.0,
+    "sharpe": 0.56,
+    "sortino": 0.66
+  },
+  "exit_load_text": "Nil",
+  "stamp_duty_text": "0.005% (from July 1st, 2020)",
+  "tax_text": "If redeemed within one year, returns are taxed at 20%. If redeemed after one year, returns exceeding Rs 1.25 lakh in a financial year are taxed at 12.5%.",
+  "fund_manager": {
+    "name": "Neelesh Surana",
+    "tenure": "Nov 2015 - Present",
+    "education": "B.E (Mechanical) and MBA in Finance",
+    "experience_summary": "Worked with ASK Investment Managers Pvt Ltd before joining Mirae Asset AMC."
+  },
+  "investment_objective": "Generate long-term capital appreciation from a diversified portfolio of predominantly equity and equity related instruments.",
+  "benchmark": "NIFTY 500 Total Return Index",
+  "fund_house": {
+    "name": "Mirae Asset Mutual Fund",
+    "rank_india": 13,
+    "total_aum_cr": 200687.68,
+    "date_of_incorporation": "2007-11-30",
+    "phone": "022-67800301 / 1800-2090-777",
+    "website": "http://www.miraeassetmf.co.in"
+  },
+  "faqs": [
+    {
+      "question": "How to Invest in Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "Invest on Groww after online KYC, then choose SIP or lumpsum."
+    },
+    {
+      "question": "What kind of returns does Mirae Asset ELSS Tax Saver Fund Direct Growth provide?",
+      "answer_summary": "Average annual return since inception reported as 7.96%."
+    },
+    {
+      "question": "How much expense ratio is charged by Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "Expense ratio is the annual fund management charge; current page value is 0.86%."
+    },
+    {
+      "question": "What is the AUM of Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "AUM reported as Rs 22,940.33 Cr."
+    },
+    {
+      "question": "How to Redeem Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "Redeem from holdings using the redeem action in app/web flow."
+    },
+    {
+      "question": "Can I invest in SIP and Lump Sum of Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "Both SIP and lump sum are supported."
+    },
+    {
+      "question": "What is the NAV of Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "NAV reported as Rs 56.11 as of 07 May 2026."
+    },
+    {
+      "question": "What is the PE and PB ratio of Mirae Asset ELSS Tax Saver Fund Direct Growth?",
+      "answer_summary": "FAQ explains PE/PB concept and interpretation for the portfolio."
+    }
+  ],
+  "source_url": "https://groww.in/mutual-funds/mirae-asset-elss-tax-saver-fund-direct-growth",
+  "scraped_at": "2026-05-08T12:10:00Z"
 }

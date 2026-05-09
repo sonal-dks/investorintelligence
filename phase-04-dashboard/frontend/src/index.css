@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@source "../../../phase-05-smart-search/frontend/src";
+@source "../../../phase-06-voice-agent/frontend/src";
+@source "../../../phase-07-intent-approvals/frontend/src";
+@source "../../../phase-08-calendar-booking/frontend/src";
+@source "../../../phase-09-weekly-pulse/frontend/src";
+@source "../../../phase-10-explorer-resources/frontend/src";
+
 :root {
   --background: #ffffff;
   --foreground: #111827;

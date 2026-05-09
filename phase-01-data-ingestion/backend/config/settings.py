@@ -18,6 +18,7 @@ BATCH_INSERT_SIZE = 50
 REVIEW_APP_ID = "com.nextbillion.groww"
 REVIEW_COUNT = 100
 REVIEW_LANGUAGE = "en"
+REVIEW_LOOKBACK_DAYS = 60
 
 FUND_URLS: list[str] = [
     "https://groww.in/mutual-funds/mirae-asset-elss-tax-saver-fund-direct-growth",

@@ -33,4 +33,13 @@ PY
 
 cp "${ROOT_DIR}/phase-12-assembly-deploy/templates/vercel.json" "${OUT_DIR}/vercel.json"
 
+# Paths in the dashboard app assume `frontend/` lives under `phase-04-dashboard/`. In `frontend-deploy/`
+# (repo root), sibling phases are one `../` shorter — rewrite Tailwind @source + TS path aliases.
+if [ -f "${OUT_DIR}/src/index.css" ]; then
+  perl -pi -e 's|\.\./\.\./\.\./phase-|\.\./\.\./phase-|g' "${OUT_DIR}/src/index.css"
+fi
+if [ -f "${OUT_DIR}/tsconfig.app.json" ]; then
+  perl -pi -e 's|\.\./\.\./phase-|\.\./phase-|g' "${OUT_DIR}/tsconfig.app.json"
+fi
+
 echo "[phase-12] Frontend assembly complete."

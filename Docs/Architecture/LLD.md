@@ -19,12 +19,18 @@
   3. Return list of successful extractions + list of failures
 
 #### Module: ReviewScraper
-- Inputs: App ID ("com.nextbillion.groww"), count (100), language ("en")
+- Inputs: App ID ("com.nextbillion.groww"), page count, language ("en"), lookback_days (default 60)
 - Outputs: List of ReviewData dicts
 - Internal logic:
-  1. Call google-play-scraper `reviews()` with sort=NEWEST, count=100
-  2. Map response fields to ReviewData schema
-  3. Deduplicate by review_id (in case of API pagination quirks)
+  1. Call google-play-scraper `reviews()` with sort=NEWEST and continuation token pagination
+  2. Continue paging until oldest fetched row is older than lookback_days cutoff or no continuation token
+  3. Deduplicate by review_id
+  4. Apply cleaning filters:
+     - review_date must be within lookback window
+     - review_text must be English-like
+     - review_text must not contain profanity/harmful language
+     - review_text must contain at least 5 words
+  5. Map remaining rows to ReviewData schema
 
 #### Module: DataValidator
 - Inputs: List of FundData or ReviewData dicts
@@ -41,8 +47,15 @@
 - Internal logic:
   1. Add `scraped_at = datetime.utcnow()` to each record
   2. Batch insert (50 at a time) to avoid payload limits
-  3. On insert error: log failed batch, continue with remaining
-  4. Return counts
+  3. For `app_reviews`, use upsert on `review_id` with duplicate ignore to make reruns idempotent
+  4. On insert/upsert error: log failed batch, continue with remaining
+  5. Return counts
+
+#### Migration: extended fund fields
+- SQL migration `phase-01-data-ingestion/migrations/003_add_extended_mutual_fund_columns.sql`
+- Adds new columns on `mutual_fund_data` for:
+  - scalar fields (`one_day_return_pct`, `returns_10y`, `returns_since_inception`, minimum one-time amounts, benchmark/objective/manager metadata)
+  - semi-structured fields (`return_calculator_sip`, `return_calculator_one_time`, `returns_and_rankings_annualised`, `returns_and_rankings_absolute`, `holding_analysis`, `sector_allocation`, `advanced_ratios`, `faq_items`) as `jsonb`
 
 ### API Contracts
 
@@ -53,7 +66,7 @@ async def scrape_mutual_funds(urls: list[str]) -> ScrapeResult:
     """Returns ScrapeResult(funds=[], errors=[])"""
 
 async def scrape_reviews(app_id: str, count: int = 100) -> list[ReviewData]:
-    """Returns list of reviews"""
+    """Returns cleaned reviews from paginated newest feed within lookback window"""
 
 def validate_funds(funds: list[dict]) -> tuple[list[FundData], list[ValidationError]]:
     """Splits into valid and invalid"""
@@ -105,6 +118,12 @@ Indexes: `idx_fund_slug_scraped` on (fund_slug, scraped_at DESC) for latest-per-
 
 Indexes: `idx_review_date` on (review_date DESC); `idx_review_sentiment` on (sentiment)
 
+#### Cleaning policy (pre-insert)
+- `review_date >= now() - interval '60 days'`
+- English-like heuristic must pass
+- Profanity/harmful lexicon check must pass
+- Minimum `word_count(review_text) >= 5`
+
 ### Frontend Technical Detail
 - N/A (backend-only phase)
 
@@ -129,7 +148,7 @@ Indexes: `idx_review_date` on (review_date DESC); `idx_review_sentiment` on (sen
 
 ### Success Criteria
 - 30/30 funds scraped with valid data
-- 50+ reviews per run
+- Reviews scraped across paginated newest feed for 60-day window, then cleaned before insert
 - Zero null required fields inserted
 
 ### Exit Criteria
@@ -155,9 +174,9 @@ Next Step: Phase 02 - RAG Pipeline
 
 ### Edge-Case Validation
 #### Inventory
-- Inputs: URL returns 404; page renders but fund section missing; NAV = "N/A" text; AUM contains commas ("1,234.56"); returns field empty for new fund
+- Inputs: URL returns 404; page renders but fund section missing; NAV = "N/A" text; AUM contains commas ("1,234.56"); returns field empty for new fund; review text is non-English/profane/<5 words
 - System: Playwright browser crash mid-scrape; Supabase rate limit (100 req/s free tier)
-- Dependencies: Groww adds captcha; Google Play changes review format; Supabase maintenance window
+- Dependencies: Groww adds captcha; Google Play changes review format/pagination token behavior; Supabase maintenance window
 - User behavior: N/A
 - Environment: GitHub Actions runner has 2-core CPU (concurrent scraping limited)
 - AI-specific: N/A
@@ -1769,7 +1788,7 @@ UNIQUE constraint on (keyword, week_start)
 
 ---
 
-## Phase 10: Mutual Fund Explorer + Resource Hub
+## Phase 10: Mutual Fund Explorer
 
 ### Module Breakdown
 
@@ -1820,51 +1839,12 @@ UNIQUE constraint on (keyword, week_start)
   }
   ```
 
-#### GET /api/resources/fees
-- Response:
-  ```json
-  {
-    "sections": [
-      {
-        "fee_type": "exit_load",
-        "title": "Exit Load",
-        "items": [
-          {"category": "Equity Funds", "description": "1% if redeemed within 1 year", "typical_range": "0-1%", "notes": "Applicable to most equity schemes"}
-        ]
-      },
-      {
-        "fee_type": "expense_ratio",
-        "title": "Expense Ratio",
-        "items": [
-          {"category": "Direct Plans", "description": "Lower expense as no distributor commission", "typical_range": "0.1-0.5%"},
-          {"category": "Regular Plans", "description": "Higher expense includes distributor trail", "typical_range": "1.0-2.5%"}
-        ]
-      }
-    ],
-    "last_updated": "2026-05-06T06:00:00Z",
-    "source_url": "https://groww.in"
-  }
-  ```
-
 ### Data Model Details
 
-#### Table: fee_explainer_data
-| Field | Type | Constraints | Notes |
-|-------|------|-------------|-------|
-| id | uuid | PK | |
-| fee_type | text | NOT NULL | exit_load, expense_ratio, capital_gains, stamp_duty, stt |
-| category | text | NOT NULL | e.g., "Equity Funds", "Direct Plans" |
-| description | text | NOT NULL | |
-| typical_range | text | | e.g., "0.1-0.5%" |
-| applicable_to | text | | |
-| notes | text | | |
-| source_url | text | | |
-| last_updated | timestamptz | default now() | |
-
 ### Testing Plan
-- Unit: Fund query with missing fields (null returns_5y); fee data structure; summary calculations
+- Unit: Fund query with missing fields (null returns_5y); summary calculations
 - Integration: Fund API with test data; client-side search/filter logic
-- E2E: Load explorer → search → filter → verify cards; switch to Resource Hub → verify fees
+- E2E: Load explorer → search → filter → verify cards
 
 ### Expected Outputs
 
@@ -1887,8 +1867,8 @@ UNIQUE constraint on (keyword, week_start)
 
 ### Implementation Status
 - Implemented in `phase-10-explorer-resources/`:
-  - Backend: `fund_explorer_service.py`, `fee_explainer_service.py`, `fund_router.py`, `resource_router.py`
-  - Frontend: `MutualFundExplorer.tsx`, `ResourceHub.tsx`, `FundCard.tsx`, `FeeSection.tsx`
+  - Backend: `fund_explorer_service.py`, `fund_router.py`
+  - Frontend: `MutualFundExplorer.tsx`, `FundCard.tsx`
   - Tests: `phase-10-explorer-resources/tests/`
 
 ---

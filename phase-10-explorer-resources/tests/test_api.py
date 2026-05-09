@@ -9,7 +9,7 @@ def test_health():
     client = TestClient(app)
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json()["phase"] == "10-explorer-resources"
+    assert resp.json()["phase"] == "10-explorer"
 
 
 def test_get_funds_and_summary():
@@ -23,12 +23,3 @@ def test_get_funds_and_summary():
     summary = client.get("/api/funds/summary")
     assert summary.status_code == 200
     assert "avg_expense_ratio" in summary.json()
-
-
-def test_fee_explainer_shape():
-    client = TestClient(app)
-    resp = client.get("/api/resources/fees")
-    assert resp.status_code == 200
-    body = resp.json()
-    assert isinstance(body["sections"], list)
-    assert len(body["sections"]) >= 3

@@ -10,6 +10,10 @@ from supabase import Client, create_client
 from backend.config import Settings
 from backend.models.schemas import (
     BookingSummaryResponse,
+    DashboardOverviewKPI,
+    DashboardOverviewPulse,
+    DashboardOverviewResponse,
+    DashboardStockItem,
     FundRow,
     FundStripResponse,
     KPIItem,
@@ -206,4 +210,185 @@ class DashboardService:
             overall_rating=overall_rating,
             new_reviews_this_week=new_reviews_this_week,
             sentiment_summary=sentiment_summary,
+        )
+
+    def _count_rows(
+        self,
+        table: str,
+        start_iso: str | None = None,
+        end_iso: str | None = None,
+        user_id: str | None = None,
+        role: RoleLiteral = "admin",
+        created_col: str = "created_at",
+    ) -> int:
+        query = self._client.table(table).select("id", count="exact")
+        if start_iso:
+            query = query.gte(created_col, start_iso)
+        if end_iso:
+            query = query.lt(created_col, end_iso)
+        if role == "investor" and user_id:
+            query = query.eq("user_id", user_id)
+        result = query.execute()
+        return int(result.count or 0)
+
+    def get_overview(self, user_id: str) -> DashboardOverviewResponse:
+        role = self._resolve_role(user_id)
+        now = datetime.now(UTC)
+        week_start = now - timedelta(days=7)
+        week_start_iso = week_start.isoformat()
+        now_iso = now.isoformat()
+
+        total_active_users = (
+            1
+            if role == "investor"
+            else int(self._client.table("user_profiles").select("id", count="exact").execute().count or 0)
+        )
+        total_login_sessions = self._count_activity("login", week_start_iso, now_iso, user_id, role)
+        chatbot_sessions = self._count_activity("chatbot_used", week_start_iso, now_iso, user_id, role)
+        voice_sessions = self._count_rows(
+            "voice_sessions",
+            start_iso=week_start_iso,
+            end_iso=now_iso,
+            user_id=user_id,
+            role=role,
+        )
+        total_bookings = self._count_bookings(week_start_iso, now_iso, user_id, role)
+
+        pending_approvals_q = self._client.table("approvals").select("id", count="exact").eq("status", "pending")
+        if role == "investor":
+            pending_approvals_q = pending_approvals_q.eq("user_id", user_id)
+        pending_approvals = int(pending_approvals_q.execute().count or 0)
+
+        email_triggers_q = self._client.table("approvals").select("id", count="exact").eq("action_type", "email")
+        if role == "investor":
+            email_triggers_q = email_triggers_q.eq("user_id", user_id)
+        email_triggers = int(email_triggers_q.execute().count or 0)
+
+        fund_rows = (
+            self._client.table("mutual_fund_data")
+            .select("fund_slug,fund_name,nav,returns_1y")
+            .order("scraped_at", desc=True)
+            .limit(200)
+            .execute()
+            .data
+            or []
+        )
+        seen: set[str] = set()
+        stocks: list[DashboardStockItem] = []
+        for row in fund_rows:
+            slug = str(row.get("fund_slug") or "")
+            if not slug or slug in seen:
+                continue
+            seen.add(slug)
+            symbol = slug.split("-")[0].upper()
+            stocks.append(
+                DashboardStockItem(
+                    symbol=symbol,
+                    name=str(row.get("fund_name") or "Unknown"),
+                    price=_to_float(row.get("nav")),
+                    change_pct=_to_float(row.get("returns_1y")),
+                )
+            )
+            if len(stocks) >= 6:
+                break
+        fund_resources = len(seen)
+
+        booking_summary = self.get_booking_summary(user_id)
+
+        pulse_latest = (
+            self._client.table("weekly_pulse")
+            .select("overall_rating,generated_at,week_start")
+            .order("generated_at", desc=True)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+        keyword_rows = (
+            self._client.table("review_keywords")
+            .select("keyword,mention_count")
+            .order("mention_count", desc=True)
+            .limit(1)
+            .execute()
+            .data
+            or []
+        )
+        pulse_preview = self.get_pulse_preview()
+        latest = pulse_latest[0] if pulse_latest else {}
+        keyword = keyword_rows[0] if keyword_rows else {}
+        generated_at = latest.get("generated_at")
+        last_pulse_label = "Last Pulse: N/A"
+        if generated_at:
+            try:
+                dt = datetime.fromisoformat(str(generated_at).replace("Z", "+00:00"))
+                hours = int((now - dt).total_seconds() // 3600)
+                last_pulse_label = f"Last Pulse: {max(hours, 0)}h ago"
+            except Exception:
+                last_pulse_label = "Last Pulse: recent"
+
+        kpis = [
+            DashboardOverviewKPI(
+                key="total_active_users",
+                label="TOTAL ACTIVE USERS",
+                value=total_active_users,
+                subtitle="Investors on platform" if role == "admin" else "Your account scope",
+            ),
+            DashboardOverviewKPI(
+                key="total_login_sessions",
+                label="TOTAL LOGIN SESSIONS",
+                value=total_login_sessions,
+                subtitle="All users combined" if role == "admin" else "Your logins this week",
+            ),
+            DashboardOverviewKPI(
+                key="chatbot_sessions",
+                label="CHATBOT SESSIONS",
+                value=chatbot_sessions,
+                subtitle="RAG chat usage",
+            ),
+            DashboardOverviewKPI(
+                key="voice_sessions",
+                label="VOICE SESSIONS",
+                value=voice_sessions,
+                subtitle="Voice interactions",
+            ),
+            DashboardOverviewKPI(
+                key="total_bookings",
+                label="TOTAL BOOKINGS",
+                value=total_bookings,
+                subtitle=f"{booking_summary.confirmed} confirmed · {booking_summary.cancelled} cancelled",
+            ),
+            DashboardOverviewKPI(
+                key="email_triggers",
+                label="EMAIL TRIGGERS",
+                value=email_triggers,
+                subtitle="Triggered through approvals",
+            ),
+            DashboardOverviewKPI(
+                key="pending_approvals",
+                label="PENDING APPROVALS",
+                value=pending_approvals,
+                subtitle="Awaiting review",
+            ),
+            DashboardOverviewKPI(
+                key="fund_resources",
+                label="FUND RESOURCES",
+                value=fund_resources,
+                subtitle="Mutual funds tracked",
+            ),
+        ]
+
+        pulse = DashboardOverviewPulse(
+            overall_rating=pulse_preview.overall_rating,
+            new_reviews_this_week=pulse_preview.new_reviews_this_week,
+            top_keyword=str(keyword.get("keyword") or "N/A"),
+            top_keyword_mentions=int(keyword.get("mention_count") or 0),
+            last_pulse_label=last_pulse_label,
+        )
+
+        return DashboardOverviewResponse(
+            role=role,
+            kpis=kpis,
+            stocks=stocks,
+            booking_summary=booking_summary,
+            pulse=pulse,
         )

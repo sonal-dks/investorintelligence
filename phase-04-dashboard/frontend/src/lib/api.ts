@@ -1,4 +1,4 @@
-import type { BookingSummary, FundStrip, KPIResponse, PulsePreview, UserProfile } from "../types";
+import type { BookingSummary, DashboardOverview, FundStrip, KPIResponse, PulsePreview, UserProfile } from "../types";
 
 const base = () => import.meta.env.VITE_API_BASE ?? "";
 
@@ -28,6 +28,10 @@ export async function fetchMe(accessToken: string): Promise<{ res: Response; bod
 
 export async function fetchKPIs(accessToken: string): Promise<KPIResponse> {
   return authGet<KPIResponse>("/api/dashboard/kpis", accessToken);
+}
+
+export async function fetchDashboardOverview(accessToken: string): Promise<DashboardOverview> {
+  return authGet<DashboardOverview>("/api/dashboard/overview", accessToken);
 }
 
 export async function fetchBookingSummary(accessToken: string): Promise<BookingSummary> {

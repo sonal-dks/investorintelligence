@@ -84,9 +84,15 @@
 - Component: MutualFundScraper
   - Responsibility: Navigate Groww fund pages via Playwright, extract structured data
   - Dependencies: Playwright, Groww website availability
+- Component: MutualFundSchemaMigration
+  - Responsibility: Keep `mutual_fund_data` schema aligned with newly scraped fields before batch writes
+  - Dependencies: Supabase SQL migration execution
 - Component: ReviewScraper
-  - Responsibility: Fetch Google Play reviews for Groww app
+  - Responsibility: Fetch Google Play reviews for Groww app using paginated pull within a 60-day lookback window
   - Dependencies: google-play-scraper library, Google Play availability
+- Component: ReviewCleaner
+  - Responsibility: Filter out non-English, harmful/profane, and <5-word reviews before persistence
+  - Dependencies: Text heuristics/profanity list
 - Component: DataValidator
   - Responsibility: Validate scraped data against schema before insert
   - Dependencies: None (pure logic)
@@ -106,7 +112,7 @@
   - Contract: Accepts list of valid FundData, returns insert count + failures
 - SupabaseWriter → Supabase:
   - Protocol: HTTPS REST (supabase-py client)
-  - Contract: Batch INSERT into mutual_fund_data/app_reviews; returns row IDs
+  - Contract: Batch INSERT into mutual_fund_data; idempotent UPSERT into app_reviews on `review_id` to tolerate rolling-window reruns
 - GitHub Action → Scraper:
   - Protocol: Python subprocess execution
   - Contract: Exit code 0 = success; non-zero = failure (partial results logged)
@@ -118,9 +124,10 @@
 4. For each URL: wait for page render → extract data using CSS selectors → build FundData dict
 5. DataValidator checks each FundData: required fields present, types correct, values in bounds
 6. Valid records passed to SupabaseWriter for batch INSERT (with scraped_at = now())
-7. ReviewScraper fetches latest 100 reviews from Google Play (sorted by newest)
-8. Reviews validated and batch-inserted to app_reviews table
-9. Action summary reports: X/30 funds scraped, Y reviews fetched, Z validation errors
+7. ReviewScraper paginates Google Play newest reviews until 60-day cutoff
+8. ReviewCleaner drops non-English/profane/<5-word rows
+9. Reviews validated and batch-inserted to app_reviews table
+10. Action summary reports: X/30 funds scraped, Y raw reviews fetched, Y' cleaned reviews inserted, Z validation errors
 
 ### Security and Compliance
 - AuthN/AuthZ model: GitHub Action authenticates to Supabase via service-role key (bypasses RLS for batch insert)
@@ -128,7 +135,7 @@
 - Audit/approval controls: None needed (batch data ingestion, no user-facing actions)
 
 ### Scalability and Reliability
-- Scaling expectations: Fixed at 30 URLs + ~100 reviews. No scaling needed. If URLs increase to 100+, increase concurrency or add pagination.
+- Scaling expectations: Fixed at 30 URLs + variable review volume over 60 days. Pagination is required for reviews; if review volume increases significantly, cap max pages with alerting.
 - Failure domains: Individual URL failure is isolated (partial success); Supabase outage blocks all writes
 - Recovery strategy: On failure, GitHub Action can be manually re-triggered. Previous data remains valid. New scrape appends (never deletes old data).
 
@@ -137,7 +144,7 @@
 
 ### Success Criteria
 - 30/30 fund URLs scraped with all required fields
-- 50+ reviews scraped per run
+- Reviews are collected for the last 60 days and cleaned with policy filters before insert
 - Data validated and inserted to Supabase
 - GitHub Action completes within 10 minutes
 
@@ -151,7 +158,7 @@
 - Escalation: If >5 URLs fail consecutively, investigate Groww page structure change
 
 ### Edge-Case Design
-- 5-category inventory: URL 404 (handled, skip); page structure changed (detection via empty required fields); rate limiting by Groww (2s delay between pages); Supabase batch insert partial failure (retry failed rows); Google Play scraper blocked (fallback to cached data)
+- 5-category inventory: URL 404 (handled, skip); page structure changed (detection via empty required fields); rate limiting by Groww (2s delay between pages); Supabase batch insert partial failure (retry failed rows); Google Play scraper blocked (fallback to cached data); review cleaning over-filters data
 - Containment: Each URL scraped independently; failure of one does not stop others
 - Observability: GitHub Action summary annotation shows success/failure counts; Supabase data has scraped_at for freshness tracking
 
@@ -865,26 +872,20 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
 
 ---
 
-## Phase 10: Mutual Fund Explorer + Resource Hub
+## Phase 10: Mutual Fund Explorer
 
 ### High-Level Components
 - Component: FundExplorerService (backend)
   - Responsibility: Return all funds with latest metrics + summary stats
   - Dependencies: Supabase (mutual_fund_data)
-- Component: FeeExplainerService (backend)
-  - Responsibility: Return structured fee/tax data
-  - Dependencies: Supabase (fee_explainer_data)
 - Component: MutualFundExplorerPage (frontend)
   - Responsibility: Searchable/filterable fund grid
   - Dependencies: Fund API, client-side filtering
-- Component: ResourceHubPage (frontend)
-  - Responsibility: Tabbed resource library (funds + fees)
-  - Dependencies: Fund API, Fee API
 
 ### Integration View
 - Frontend → Backend:
   - Protocol: HTTPS REST
-  - Contract: GET /api/funds → all funds; GET /api/resources/fees → fee data
+  - Contract: GET /api/funds → all funds
 - Backend → Supabase:
   - Protocol: HTTPS REST
   - Contract: SELECT with GROUP BY fund_slug, MAX(scraped_at)
@@ -895,8 +896,6 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
 3. Backend queries Supabase: latest row per fund_slug (DISTINCT ON fund_slug ORDER BY scraped_at DESC)
 4. Returns 30 fund objects with all metrics
 5. Frontend renders grid; search/filter is client-side (instant, no API calls)
-6. User navigates to /resource-hub
-7. Fee Explainer tab: fetches GET /api/resources/fees → renders expandable sections
 8. Each section shows: rules, ranges, source URL, last_updated timestamp
 
 ### Security and Compliance
@@ -912,13 +911,11 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
 ### Success Criteria
 - All 30 funds displayed with correct data
 - Search and filter work instantly
-- Fee explainer is readable and sourced
 - Responsive on all devices
 
 ### Exit Criteria
 - [ ] Fund explorer renders all funds
 - [ ] Search/filter work together
-- [ ] Fee explainer renders
 - [ ] Source attribution visible
 
 ### Logging and Debug Requirements
@@ -934,8 +931,8 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
 
 ### Implementation Status
 - Implemented in `phase-10-explorer-resources/` with:
-  - Backend: `fund_router.py`, `resource_router.py`, `fund_explorer_service.py`, `fee_explainer_service.py`
-  - Frontend: `MutualFundExplorer.tsx`, `ResourceHub.tsx`, `FundCard.tsx`, `FeeSection.tsx`
+  - Backend: `fund_router.py`, `fund_explorer_service.py`
+  - Frontend: `MutualFundExplorer.tsx`, `FundCard.tsx`
   - Tests and expected outputs under `tests/` and `expected_outputs/`
 
 ---

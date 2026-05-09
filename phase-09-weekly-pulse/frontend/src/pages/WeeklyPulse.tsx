@@ -5,7 +5,7 @@ import { KeywordTable } from "../components/KeywordTable";
 import { PulseKPIs } from "../components/PulseKPIs";
 import { ReviewCard, type Review } from "../components/ReviewCard";
 
-const base = () => import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8090";
+const base = () => import.meta.env.VITE_API_BASE ?? "";
 
 type Latest = {
   overall_rating: number;
@@ -25,6 +25,7 @@ type Latest = {
 
 export function WeeklyPulsePage() {
   const [tab, setTab] = useState<"overview" | "reviews" | "keywords">("overview");
+  const [themeView, setThemeView] = useState<"llm" | "deterministic">("llm");
   const [sentiment, setSentiment] = useState<"all" | "positive" | "neutral" | "negative">("all");
   const latest = useQuery({
     queryKey: ["pulse-latest"],
@@ -57,61 +58,89 @@ export function WeeklyPulsePage() {
   if (!data) return <main>No pulse data.</main>;
 
   return (
-    <main style={{ maxWidth: 980, margin: "0 auto", padding: 16 }}>
-      <h1>Weekly Pulse</h1>
+    <main className="mx-auto max-w-6xl space-y-4">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h1 className="text-xl font-semibold">Weekly Pulse</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          App review sentiment, themes, and model-backed weekly insights.
+        </p>
+      </div>
       <PulseKPIs
         overallRating={data.overall_rating}
         totalReviews={data.total_reviews}
         positiveCount={data.positive_count}
         negativeCount={data.negative_count}
       />
-      <div style={{ display: "flex", gap: 8, marginTop: 12, marginBottom: 12 }}>
-        <button onClick={() => setTab("overview")}>Overview</button>
-        <button onClick={() => setTab("reviews")}>Reviews</button>
-        <button onClick={() => setTab("keywords")}>Keywords</button>
+      <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-card p-2">
+        <button className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setTab("overview")}>
+          Overview
+        </button>
+        <button className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setTab("reviews")}>
+          Reviews
+        </button>
+        <button className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setTab("keywords")}>
+          Keywords
+        </button>
       </div>
       {tab === "overview" && (
-        <section>
-          <div style={{ fontSize: 12, color: "#666", marginBottom: 8 }}>
-            Model path: {data.model_path ?? "unknown"} | LLM model: {data.model_used ?? "n/a"}
+        <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+          <div className="text-xs text-muted-foreground">
+            Model path: {data.model_path ?? "unknown"} | LLM model: {data.model_used ?? "n/a"} | Deterministic:{" "}
+            {data.deterministic_algorithm ?? "rule-based-v1"}
           </div>
-          <p>{data.summary_text}</p>
-          <ol>
+          <p className="text-sm">{data.summary_text}</p>
+          <ol className="list-inside list-decimal space-y-1 text-sm text-muted-foreground">
             {data.action_items.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ol>
-          <h3 style={{ marginTop: 20 }}>LLM vs Deterministic Comparison</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-              <h4 style={{ marginTop: 0 }}>LLM Output (Primary)</h4>
-              <p>{data.llm_summary_text ?? data.summary_text}</p>
-              <ul>
-                {(data.llm_themes ?? []).map((t) => (
-                  <li key={`llm-${t.theme}`}>{t.theme} ({t.count})</li>
-                ))}
-              </ul>
-            </article>
-            <article style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}>
-              <h4 style={{ marginTop: 0 }}>Deterministic Fallback (Dashboard View)</h4>
-              <p>{data.deterministic_summary_text ?? "No deterministic summary available."}</p>
-              <div style={{ fontSize: 12, color: "#666" }}>
-                Algorithm: {data.deterministic_algorithm ?? "rule-based"}
-              </div>
-              <ul>
-                {(data.deterministic_themes ?? []).map((t) => (
-                  <li key={`det-${t.theme}`}>{t.theme} ({t.count})</li>
-                ))}
-              </ul>
-            </article>
+          <h3 className="pt-2 text-sm font-semibold">Themes Comparison</h3>
+          <div className="flex gap-2">
+            <button className="rounded-md border border-border px-3 py-1.5 text-sm" onClick={() => setThemeView("llm")}>
+              LLM Themes
+            </button>
+            <button
+              className="rounded-md border border-border px-3 py-1.5 text-sm"
+              onClick={() => setThemeView("deterministic")}
+            >
+              Deterministic Themes
+            </button>
           </div>
+          {themeView === "llm" ? (
+            <article className="rounded-lg border border-border p-3">
+              <h4 className="text-sm font-semibold">LLM Output (Primary)</h4>
+              <p className="mt-2 text-sm">{data.llm_summary_text ?? data.summary_text}</p>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {(data.llm_themes ?? []).map((t) => (
+                  <li key={`llm-${t.theme}`}>
+                    {t.theme} ({t.count}) - {t.sentiment}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ) : (
+            <article className="rounded-lg border border-border p-3">
+              <h4 className="text-sm font-semibold">Deterministic Fallback</h4>
+              <p className="mt-2 text-sm">{data.deterministic_summary_text ?? "No deterministic summary available."}</p>
+              <div className="mt-2 text-xs text-muted-foreground">
+                Algorithm: {data.deterministic_algorithm ?? "rule-based-v1"}
+              </div>
+              <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
+                {(data.deterministic_themes ?? []).map((t) => (
+                  <li key={`det-${t.theme}`}>
+                    {t.theme} ({t.count}) - {t.sentiment}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          )}
         </section>
       )}
       {tab === "reviews" && (
-        <section>
-          <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
+        <section className="rounded-xl border border-border bg-card p-4">
+          <div className="mb-3 flex flex-wrap gap-2">
             {(["all", "positive", "neutral", "negative"] as const).map((s) => (
-              <button key={s} onClick={() => setSentiment(s)}>
+              <button key={s} className="rounded-md border border-border px-3 py-1 text-sm" onClick={() => setSentiment(s)}>
                 {s}
               </button>
             ))}
@@ -121,7 +150,11 @@ export function WeeklyPulsePage() {
           ))}
         </section>
       )}
-      {tab === "keywords" && <KeywordTable rows={keywords.data?.keywords ?? []} />}
+      {tab === "keywords" && (
+        <section className="rounded-xl border border-border bg-card p-4">
+          <KeywordTable rows={keywords.data?.keywords ?? []} />
+        </section>
+      )}
     </main>
   );
 }

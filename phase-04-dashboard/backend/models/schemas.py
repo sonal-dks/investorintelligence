@@ -24,6 +24,36 @@ class KPIResponse(BaseModel):
     bookings: KPIItem
 
 
+class DashboardStockItem(BaseModel):
+    symbol: str
+    name: str
+    price: float
+    change_pct: float
+
+
+class DashboardOverviewKPI(BaseModel):
+    key: str
+    label: str
+    value: int
+    subtitle: str
+
+
+class DashboardOverviewPulse(BaseModel):
+    overall_rating: float
+    new_reviews_this_week: int
+    top_keyword: str
+    top_keyword_mentions: int
+    last_pulse_label: str
+
+
+class DashboardOverviewResponse(BaseModel):
+    role: RoleLiteral
+    kpis: list[DashboardOverviewKPI]
+    stocks: list[DashboardStockItem]
+    booking_summary: "BookingSummaryResponse"
+    pulse: DashboardOverviewPulse
+
+
 class BookingSummaryResponse(BaseModel):
     confirmed: int
     cancelled: int

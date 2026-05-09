@@ -1,5 +1,14 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@phase05/*": ["../../phase-05-smart-search/frontend/src/*"],
+      "@phase06/*": ["../../phase-06-voice-agent/frontend/src/*"],
+      "@phase07/*": ["../../phase-07-intent-approvals/frontend/src/*"],
+      "@phase08/*": ["../../phase-08-calendar-booking/frontend/src/*"],
+      "@phase09/*": ["../../phase-09-weekly-pulse/frontend/src/*"],
+      "@phase10/*": ["../../phase-10-explorer-resources/frontend/src/*"]
+    },
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2022",
     "useDefineForClassFields": true,

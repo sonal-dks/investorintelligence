@@ -20,14 +20,35 @@ class FundData(BaseModel):
     aum_cr: Optional[float] = Field(default=None, gt=0)
     expense_ratio: Optional[float] = Field(default=None, gt=0, lt=10)
     min_sip: Optional[int] = None
+    min_lumpsum_first: Optional[int] = None
+    min_lumpsum_second: Optional[int] = None
     risk_level: Optional[str] = None
+    rating: Optional[int] = Field(default=None, ge=0, le=5)
+    asset_class: Optional[str] = None
+    lock_in_period: Optional[str] = None
+    one_day_return_pct: Optional[float] = None
     returns_1m: Optional[float] = None
     returns_6m: Optional[float] = None
     returns_1y: Optional[float] = None
     returns_3y: Optional[float] = None
     returns_5y: Optional[float] = None
+    returns_10y: Optional[float] = None
+    returns_since_inception: Optional[float] = None
     exit_load_text: Optional[str] = None
     tax_text: Optional[str] = None
+    stamp_duty_text: Optional[str] = None
+    benchmark: Optional[str] = None
+    investment_objective: Optional[str] = None
+    fund_manager_name: Optional[str] = None
+    fund_manager_tenure: Optional[str] = None
+    return_calculator_sip: Optional[list[dict]] = None
+    return_calculator_one_time: Optional[list[dict]] = None
+    returns_and_rankings_annualised: Optional[dict] = None
+    returns_and_rankings_absolute: Optional[dict] = None
+    holding_analysis: Optional[dict] = None
+    sector_allocation: Optional[list[dict]] = None
+    advanced_ratios: Optional[dict] = None
+    faq_items: Optional[list[dict[str, str]]] = None
     source_url: str
     scraped_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

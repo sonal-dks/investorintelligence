@@ -12,6 +12,48 @@ from backend.models.schemas import WriteResult
 
 logger = logging.getLogger(__name__)
 
+_MUTUAL_FUND_DB_COLUMNS = {
+    "fund_slug",
+    "fund_name",
+    "category",
+    "nav",
+    "nav_date",
+    "aum_cr",
+    "expense_ratio",
+    "min_sip",
+    "min_lumpsum_first",
+    "min_lumpsum_second",
+    "risk_level",
+    "rating",
+    "asset_class",
+    "lock_in_period",
+    "one_day_return_pct",
+    "returns_1m",
+    "returns_6m",
+    "returns_1y",
+    "returns_3y",
+    "returns_5y",
+    "returns_10y",
+    "returns_since_inception",
+    "exit_load_text",
+    "tax_text",
+    "stamp_duty_text",
+    "benchmark",
+    "investment_objective",
+    "fund_manager_name",
+    "fund_manager_tenure",
+    "return_calculator_sip",
+    "return_calculator_one_time",
+    "returns_and_rankings_annualised",
+    "returns_and_rankings_absolute",
+    "holding_analysis",
+    "sector_allocation",
+    "advanced_ratios",
+    "faq_items",
+    "source_url",
+    "scraped_at",
+}
+
 
 def _get_client() -> Client:
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
@@ -34,6 +76,15 @@ def _serialize(records: list[Any]) -> list[dict[str, Any]]:
     return out
 
 
+def _filter_table_columns(records: list[dict[str, Any]], table: str) -> list[dict[str, Any]]:
+    if table != "mutual_fund_data":
+        return records
+    filtered: list[dict[str, Any]] = []
+    for row in records:
+        filtered.append({k: v for k, v in row.items() if k in _MUTUAL_FUND_DB_COLUMNS})
+    return filtered
+
+
 async def write_to_supabase(
     data: list[Any],
     table: str,
@@ -49,7 +100,7 @@ async def write_to_supabase(
         return result
 
     client = _get_client()
-    records = _serialize(data)
+    records = _filter_table_columns(_serialize(data), table)
     total = len(records)
     logger.info("Inserting %d records into %s (batch_size=%d)", total, table, BATCH_INSERT_SIZE)
 
@@ -57,7 +108,15 @@ async def write_to_supabase(
         batch = records[i : i + BATCH_INSERT_SIZE]
         batch_num = (i // BATCH_INSERT_SIZE) + 1
         try:
-            response = client.table(table).insert(batch).execute()
+            if table == "app_reviews":
+                # Reruns over rolling windows are expected; ignore duplicate review_id rows.
+                response = (
+                    client.table(table)
+                    .upsert(batch, on_conflict="review_id", ignore_duplicates=True)
+                    .execute()
+                )
+            else:
+                response = client.table(table).insert(batch).execute()
             inserted = len(response.data) if response.data else len(batch)
             result.inserted += inserted
             logger.info("Batch %d: inserted %d rows into %s", batch_num, inserted, table)

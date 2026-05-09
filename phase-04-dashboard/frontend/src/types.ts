@@ -48,3 +48,31 @@ export type PulsePreview = {
   new_reviews_this_week: number;
   sentiment_summary: string;
 };
+
+export type DashboardOverviewKPI = {
+  key: string;
+  label: string;
+  value: number;
+  subtitle: string;
+};
+
+export type DashboardStockItem = {
+  symbol: string;
+  name: string;
+  price: number;
+  change_pct: number;
+};
+
+export type DashboardOverview = {
+  role: UserRole;
+  kpis: DashboardOverviewKPI[];
+  stocks: DashboardStockItem[];
+  booking_summary: BookingSummary;
+  pulse: {
+    overall_rating: number;
+    new_reviews_this_week: number;
+    top_keyword: string;
+    top_keyword_mentions: number;
+    last_pulse_label: string;
+  };
+};

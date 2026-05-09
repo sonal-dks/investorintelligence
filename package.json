@@ -1,0 +1,14 @@
+{
+  "name": "investor-ops-intelligence-suite",
+  "private": true,
+  "description": "Root scripts for unified local dev (assembled API + dashboard SPA).",
+  "scripts": {
+    "predev:all": "bash phase-12-assembly-deploy/scripts/assemble-backend.sh",
+    "dev:all": "concurrently -k -n api,web -c blue,green \"cd backend-deploy && ../.venv/bin/python -m uvicorn app.main:app --env-file ../phase-12-assembly-deploy/.env --reload --host 127.0.0.1 --port 8012\" \"npm run dev --prefix phase-04-dashboard/frontend\"",
+    "assemble:backend": "bash phase-12-assembly-deploy/scripts/assemble-backend.sh",
+    "assemble:frontend": "bash phase-12-assembly-deploy/scripts/assemble-frontend.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

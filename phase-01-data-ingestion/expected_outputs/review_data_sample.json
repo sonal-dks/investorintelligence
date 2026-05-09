@@ -2,9 +2,15 @@
   "review_id": "gp_review_abc123",
   "reviewer_name": "Rahul S",
   "rating": 4,
-  "review_text": "Good app for mutual fund investments. UI is clean.",
+  "review_text": "Good app for mutual fund investments and portfolio tracking. UI is clean and easy to use.",
   "review_date": "2026-05-04",
   "thumbs_up": 12,
   "app_version": "6.2.1",
-  "scraped_at": "2026-05-06T06:00:00Z"
+  "scraped_at": "2026-05-08T13:20:00Z",
+  "cleaning_flags": {
+    "is_english": true,
+    "is_harmful_or_profane": false,
+    "word_count": 15,
+    "passes_min_word_threshold": true
+  }
 }

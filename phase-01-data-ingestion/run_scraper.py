@@ -14,6 +14,7 @@ import argparse
 import asyncio
 import json
 import logging
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -133,19 +134,18 @@ async def main(args: argparse.Namespace) -> int:
         logger.info("--- Phase: RAG index refresh (phase-02) ---")
         try:
             phase02 = Path(__file__).resolve().parent.parent / "phase-02-rag-pipeline"
-            if str(phase02) not in sys.path:
-                sys.path.insert(0, str(phase02))
-            from backend.services.rag_pipeline import RAGPipeline
-
-            rag = RAGPipeline()
-            res = rag.refresh()
-            logger.info(
-                "RAG refresh: status=%s chunks=%d collection_size=%d",
-                res.status,
-                res.chunks_generated,
-                res.collection_size,
+            refresh_runner = phase02 / "run_refresh.py"
+            cp = subprocess.run(
+                [sys.executable, str(refresh_runner), "--json"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
-            if res.status != "success":
+            if cp.stdout:
+                logger.info("RAG refresh output: %s", cp.stdout.strip())
+            if cp.stderr:
+                logger.warning("RAG refresh warnings: %s", cp.stderr.strip())
+            if cp.returncode != 0:
                 exit_code = 1
         except Exception:
             logger.exception("rag_refresh_failed")

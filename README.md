@@ -83,7 +83,7 @@ This project solves that by building one connected system where users can move f
 - `phase-07-intent-approvals`: intent detection + approval workflow
 - `phase-08-calendar-booking`: booking engine + MCP/Gmail/calendar integrations
 - `phase-09-weekly-pulse`: review analytics + LLM pulse generation
-- `phase-10-explorer-resources`: mutual fund explorer + fee resource hub
+- `phase-10-explorer-resources`: mutual fund explorer
 - `phase-11-evaluation-suite`: eval orchestration, APIs, report generation
 
 ## Data and Knowledge Flow
@@ -187,6 +187,17 @@ Set required `.env` values for the phases you run (Supabase/OpenRouter/auth and 
 
 Run backend and frontend services phase-by-phase as needed (see each phase `README.md` for exact commands and ports).
 
+### Unified dashboard + assembled API (recommended)
+
+The Phase 04 dashboard frontend is the **single SPA shell** (Smart Search, Voice, Weekly Pulse, Bookings, and Approval Center are embedded routes). From the **repository root**:
+
+1. One-time (or whenever you change embedded Approval Center deps): `npm install` and `npm ci --prefix phase-07-intent-approvals/frontend`.
+2. Put Supabase + API secrets in the assembled backend env (see `phase-12-assembly-deploy/env.example`). For local runs you can export variables in your shell or use a root `.env` consumed by each phase’s settings as you prefer.
+3. Run **`npm run dev:all`**: this assembles `backend-deploy/`, starts **uvicorn** on `http://127.0.0.1:8012`, and starts the dashboard Vite dev server on **port 5180** with `/api` proxied to that assembled API.
+4. In `phase-04-dashboard/frontend/.env`, set **`VITE_API_BASE` empty** (same-origin via the proxy) or point it at your Render URL in production.
+
+Advanced: set `VITE_USE_SPLIT_API_PROXY=1` when running `npm run dev` in `phase-04-dashboard/frontend` to proxy each `/api/*` prefix to the per-phase local ports from the matrix below instead of the assembled server.
+
 ## Local Dev Matrix (Quick Start by Phase)
 
 | Phase | Purpose | Backend Run | Frontend Run | Default Ports | Key Env (minimum) |
@@ -194,7 +205,7 @@ Run backend and frontend services phase-by-phase as needed (see each phase `READ
 | `phase-01-data-ingestion` | Scrape + validate + write | `python run_scraper.py` | N/A | N/A | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` |
 | `phase-02-rag-pipeline` | Chunk/embed/retrieve | `uvicorn backend.app:app --reload --port 8002` | N/A | `8002` | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENROUTER_API_KEY` |
 | `phase-03-auth` | Auth + profiles | `uvicorn backend.main:app --reload --port 8003` | `npm run dev` (in `frontend`) | `8003`, `5173` | Supabase project URL/key + JWT/auth settings |
-| `phase-04-dashboard` | Unified dashboard | `uvicorn backend.main:app --reload --port 8004` | `npm run dev` (in `frontend`) | `8004`, `5174` | Dashboard API base + Supabase public keys |
+| `phase-04-dashboard` | Unified dashboard SPA (shell for all UIs) | `uvicorn backend.main:app --reload --port 8004` | `npm run dev` (in `frontend`) | `8004`, **`5180`** (unified Vite; see `vite.config.ts`) | Leave `VITE_API_BASE` empty for dev proxy, or set to Render URL in prod |
 | `phase-05-smart-search` | RAG chat UI/API | `uvicorn backend.main:app --reload --port 8005` | `npm run dev` (in `frontend`) | `8005`, `5175` | `OPENROUTER_API_KEY`, RAG API base, Supabase vars |
 | `phase-06-voice-agent` | Voice + text assistant | `uvicorn backend.main:app --reload --port 8006` | `npm run dev` (in `frontend`) | `8006`, `5176` | `OPENROUTER_API_KEY`, Supabase vars, voice frontend env |
 | `phase-07-intent-approvals` | Approval workflow | `uvicorn backend.main:app --reload --port 8007` | (integrated via host UIs) | `8007` | Supabase vars, approval-service env |
@@ -251,9 +262,9 @@ Use this exact flow for a fast, end-to-end product walkthrough.
    - Create a booking request for advisor callback.
    - Verify booking code is generated and booking status appears in UI.
 
-5. **Resource Hub / Explorer**
-   - Open fund explorer/resource hub.
-   - Verify fee explainer and mutual-fund information are visible with updated data context.
+5. **Mutual Fund Explorer**
+   - Open fund explorer.
+   - Verify mutual-fund information and freshness indicators are visible.
 
 ### B) Admin Demo (about 4 minutes)
 

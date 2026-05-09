@@ -1,4 +1,4 @@
-const base = () => import.meta.env.VITE_API_BASE ?? "http://127.0.0.1:8090";
+const base = () => import.meta.env.VITE_API_BASE ?? "";
 
 export type Booking = {
   id: string;

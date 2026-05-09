@@ -29,7 +29,7 @@ type FundsResponse = {
   };
 };
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_BASE ?? import.meta.env.VITE_API_BASE_URL ?? "";
 
 async function fetchFunds(): Promise<FundsResponse> {
   const res = await fetch(`${API_BASE}/api/funds`);
@@ -59,44 +59,56 @@ export function MutualFundExplorerPage() {
     });
   }, [q.data, search, category]);
 
-  if (q.isLoading) return <main style={{ padding: 20 }}>Loading funds...</main>;
-  if (q.isError) return <main style={{ padding: 20 }}>Data loading, please check back.</main>;
+  if (q.isLoading) return <main className="p-4 text-sm text-muted-foreground">Loading funds...</main>;
+  if (q.isError) return <main className="p-4 text-sm text-destructive">Data loading, please check back.</main>;
 
   const summary = q.data!.summary;
   const stale = summary.last_scraped_at ? Date.now() - new Date(summary.last_scraped_at).getTime() > 14 * 24 * 60 * 60 * 1000 : false;
 
   return (
-    <main style={{ padding: 20 }}>
-      <h1 style={{ marginBottom: 4 }}>Mutual Fund Explorer</h1>
-      <div style={{ marginBottom: 14, color: "#4b5563" }}>
+    <main className="mx-auto max-w-6xl space-y-4 px-4 py-4">
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h1 className="text-xl font-semibold">Mutual Fund Explorer</h1>
+        <div className="mt-1 text-sm text-muted-foreground">
         Last scraped: {summary.last_scraped_at || "N/A"} {stale ? " | Data may be outdated" : ""}
+        </div>
       </div>
-      <div style={{ display: "flex", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
-        <div style={{ padding: 10, border: "1px solid #e5e7eb", borderRadius: 10 }}>Tracked: {summary.tracked_funds}</div>
-        <div style={{ padding: 10, border: "1px solid #e5e7eb", borderRadius: 10 }}>Avg Expense: {summary.avg_expense_ratio}%</div>
-        <div style={{ padding: 10, border: "1px solid #e5e7eb", borderRadius: 10 }}>High Risk: {summary.high_risk_funds}</div>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-lg border border-border bg-card p-3 text-sm">Tracked: {summary.tracked_funds}</div>
+        <div className="rounded-lg border border-border bg-card p-3 text-sm">Avg Expense: {summary.avg_expense_ratio}%</div>
+        <div className="rounded-lg border border-border bg-card p-3 text-sm">High Risk: {summary.high_risk_funds}</div>
       </div>
 
-      <input
-        aria-label="Search funds"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search fund by name"
-        style={{ width: "100%", maxWidth: 420, marginBottom: 12, padding: 10 }}
-      />
+      <div className="rounded-xl border border-border bg-card p-4">
+        <input
+          aria-label="Search funds"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search fund by name"
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+        />
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-        {categories.map((c) => (
-          <button key={c} onClick={() => setCategory(c)} style={{ padding: "6px 10px", borderRadius: 16, border: "1px solid #d1d5db", background: c === category ? "#111827" : "#fff", color: c === category ? "#fff" : "#111827" }}>
-            {c}
-          </button>
-        ))}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                c === category ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ border: "1px dashed #d1d5db", borderRadius: 10, padding: 14 }}>No funds match your search.</div>
+        <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
+          No funds match your search.
+        </div>
       ) : (
-        <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((fund) => (
             <FundCard key={fund.fund_slug} fund={fund} />
           ))}

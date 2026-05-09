@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from backend import config
 from backend.models.schemas import FundsResponse, FundsSummary
@@ -20,9 +20,36 @@ def _sb_url(table: str) -> str:
     return f"{str(config.supabase_url()).rstrip('/')}/rest/v1/{table}"
 
 
-def _load_fund_rows() -> list[dict] | None:
+def _supabase_config_error() -> str | None:
+    if not config.supabase_url():
+        return "SUPABASE_URL is missing"
+    if not config.supabase_service_role_key():
+        return "SUPABASE_SERVICE_ROLE_KEY is missing"
     if not config.supabase_enabled():
-        return None
+        return "Supabase access disabled by PHASE10_DISABLE_SUPABASE"
+    return None
+
+
+def _load_fund_rows() -> list[dict]:
+    cfg_error = _supabase_config_error()
+    if cfg_error:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "supabase_not_configured",
+                "message": "Phase 10 requires live Supabase data. Sample fallback is disabled.",
+                "reason": cfg_error,
+            },
+        )
+
+    if not config.supabase_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "supabase_not_enabled",
+                "message": "Phase 10 requires live Supabase data. Sample fallback is disabled.",
+            },
+        )
     try:
         r = httpx.get(
             _sb_url("mutual_fund_data"),
@@ -32,14 +59,29 @@ def _load_fund_rows() -> list[dict] | None:
         )
         r.raise_for_status()
         return r.json() or []
-    except Exception:
-        return None
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "supabase_query_failed",
+                "message": "Supabase query for mutual_fund_data failed.",
+                "upstream_status": exc.response.status_code,
+                "upstream_body": exc.response.text[:300],
+            },
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "code": "supabase_request_error",
+                "message": "Supabase request for mutual_fund_data failed before response.",
+                "error": str(exc),
+            },
+        ) from exc
 
 
 def _funds_payload() -> dict:
     rows = _load_fund_rows()
-    if rows is None:
-        rows = _service.sample_rows()
     funds = _service.latest_funds(rows)
     summary = _service.build_summary(funds)
     return {"funds": funds, "summary": summary}

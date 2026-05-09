@@ -336,44 +336,6 @@ An AI-powered operations platform for mutual fund investors and fund managers �
 
 ---
 
-### Feature 9: Resource Hub
-
-**Description:** A browsable knowledge base of mutual funds and fee/tax explainer content — the same data used to ground the RAG chatbot, now surfaced as a structured reference library.
-
-**User Stories:**
-- As an investor, I can browse all tracked mutual funds filtered by category.
-- As an investor, I can search for a specific fund by name.
-- As an investor, I can understand all applicable fees and taxes for a fund type in plain language.
-
-**Acceptance Criteria:**
-- Two tabs: Mutual Funds | Fee Explainer.
-- Mutual Funds tab:
-  - Search input filters by fund name.
-  - Category filter pills: All, Large Cap, Mid Cap, Small Cap, Flexi Cap, Liquid, Index.
-  - Fund list rows: name, category badge, NAV, 1Y/3Y/5Y returns, risk badge, fund manager, AUM, min SIP.
-  - Risk badge: Low (emerald), Moderate (amber), High (destructive).
-  - Return trend arrow: up (green) or down (red) based on 1Y return sign.
-- Fee Explainer tab:
-  - Exit Load section: rules table with fund type, exit load %, applicable period.
-  - Expense Ratio section: ranges by category (Direct vs Regular).
-  - Capital Gains Tax section: STCG and LTCG rules for equity and debt.
-  - Stamp Duty and STT section.
-  - Each section is expandable; source attribution shown (Groww source URL + scraped timestamp).
-
-**Evaluation Criteria:**
-- Fund browsing and search are fast and usable.
-- Fee tables are readable and structured.
-- Source attribution is visible for each section.
-- Content matches the resource hub and RAG knowledge base.
-
-**Data Model:**
-- `mutual_fund_data`: fund_name, category, aum, nav, returns_1y, returns_3y, returns_5y, risk_level, min_sip, fund_manager
-- `fee_explainer_data`: fee_type, description, typical_range, applicable_to, notes
-
-**Implementation (Phase 10):** Delivered in repo folder `phase-10-explorer-resources/` (fund/resource backend APIs, explorer/resource frontend pages and components, tests, and expected outputs).
-
----
-
 ## 5. Live Data Sources and KPI Logic
 
 ### 5.1 Source Registry (No Mock Data)
@@ -385,7 +347,6 @@ An AI-powered operations platform for mutual fund investors and fund managers �
 - **Feature 6 — Mutual Fund Explorer:** Live mutual-fund data scraped from configured Groww mutual-fund pages and persisted in `mutual_fund_data`.
 - **Feature 7 — Approval Center:** Queue items generated from live chat/voice/booking workflows and persisted to `approvals`.
 - **Feature 8 — Evaluation Suite:** Quality/safety metrics computed from live evaluation runs stored in `evaluation_cases` and `evaluation_runs`.
-- **Feature 9 — Resource Hub:** Structured fund and fee datasets (`mutual_fund_data`, `fee_explainer_data`) derived from the same configured mutual-fund URL list plus extracted fee/tax sections.
 
 ### 5.1.1 Configured Mutual Fund Scrape URLs (Initial Set)
 - `https://groww.in/mutual-funds/mirae-asset-elss-tax-saver-fund-direct-growth`
@@ -462,7 +423,6 @@ App Shell
 │   ├── Smart Search         [investor + admin]
 │   ├── Weekly Pulse         [investor + admin]
 │   ├── Mutual Fund Explorer [investor + admin]
-│   ├── Resource Hub         [investor + admin]
 │   ├── Voice Agent          [investor + admin]
 │   ├── Approval Center      [admin only, badge: pending count]
 │   └── Evaluation Suite     [admin only]

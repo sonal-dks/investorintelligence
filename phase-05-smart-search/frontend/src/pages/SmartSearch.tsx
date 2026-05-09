@@ -71,12 +71,12 @@ export function SmartSearchPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 overflow-hidden rounded-xl border border-border bg-background">
       {/* Session sidebar */}
-      <div className="w-72 shrink-0 border-r border-border bg-sidebar flex flex-col">
+      <div className="hidden w-72 shrink-0 border-r border-border bg-sidebar md:flex md:flex-col">
         <div className="px-5 py-5 border-b border-border">
           <h1 className="text-sm font-semibold text-foreground">Smart Search</h1>
-          <p className="text-xs text-muted-foreground">AI-powered fund Q&A</p>
+          <p className="text-xs text-muted-foreground">RAG-powered fund Q&A</p>
         </div>
         <SessionList
           sessions={sessions}
@@ -94,7 +94,17 @@ export function SmartSearchPage() {
           <>
             <div className="flex-1 overflow-y-auto px-6 py-4">
               {messages.length === 0 && !isSending ? (
-                <SuggestedQueries onSelect={handleSend} />
+                <div className="mx-auto max-w-3xl">
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <h2 className="text-base font-semibold">Start a grounded search</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Answers are generated only from retrieved fund and fee context.
+                    </p>
+                    <div className="mt-4">
+                      <SuggestedQueries onSelect={handleSend} />
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="max-w-3xl mx-auto">
                   {messages.map((msg) => (
@@ -108,7 +118,17 @@ export function SmartSearchPage() {
             <ChatInput onSend={handleSend} disabled={isSending} />
           </>
         ) : (
-          <SuggestedQueries onSelect={handleSuggestionSelect} />
+          <div className="flex h-full items-center justify-center p-6">
+            <div className="w-full max-w-3xl rounded-2xl border border-border bg-card p-8 text-center">
+              <h2 className="text-xl font-semibold">Ask anything about funds</h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Pick a quick prompt or create a new question. Responses stay grounded in your indexed data.
+              </p>
+              <div className="mt-6">
+                <SuggestedQueries onSelect={handleSuggestionSelect} />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

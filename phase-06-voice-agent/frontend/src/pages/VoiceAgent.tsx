@@ -26,6 +26,7 @@ const SUGGESTED_QUERIES = [
   "Tell me the expense ratio of Mirae Flexi Cap Fund",
   "Compare the returns of Large Cap and Mid Cap funds",
 ];
+const base = () => import.meta.env.VITE_API_BASE ?? "";
 
 export function VoiceAgentPage() {
   const session = useAuthStore((s) => s.session);
@@ -56,6 +57,15 @@ export function VoiceAgentPage() {
     queryKey: ["voiceSessions"],
     queryFn: () => fetchVoiceSessions(accessToken),
     enabled: !!accessToken,
+  });
+
+  const pulseLatest = useQuery({
+    queryKey: ["voice-pulse-latest"],
+    queryFn: async (): Promise<{ llm_themes?: Array<{ theme: string }> }> => {
+      const r = await fetch(`${base()}/api/pulse/latest`);
+      if (!r.ok) throw new Error("pulse-latest");
+      return r.json();
+    },
   });
 
   const messagesQuery = useQuery({
@@ -133,7 +143,7 @@ export function VoiceAgentPage() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-full min-h-0 overflow-hidden rounded-xl border border-border bg-background">
       {/* Session sidebar */}
       <div className="w-64 shrink-0">
         <VoiceSessionList
@@ -173,6 +183,13 @@ export function VoiceAgentPage() {
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
               {messages.length === 0 && !isSending && (
                 <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Top themes this week:{" "}
+                    {(pulseLatest.data?.llm_themes ?? [])
+                      .slice(0, 3)
+                      .map((t) => t.theme)
+                      .join(", ") || "No themes yet"}
+                  </p>
                   <p className="text-muted-foreground">Start the conversation with a question or try:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {SUGGESTED_QUERIES.map((q) => (
