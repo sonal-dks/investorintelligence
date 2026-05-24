@@ -224,7 +224,8 @@ An AI-powered operations platform for mutual fund investors and fund managers �
 
 **Evaluation Criteria:**
 - Weekly summary is visible and traceable to source reviews.
-- Top themes and sentiment shifts are reflected accurately.
+- Top themes and sentiment shifts are reflected accurately; LLM-emitted themes are **specific** (not generic “product feedback” buckets) when OpenRouter is configured.
+- Review `sentiment` in storage reflects **text-based** classification from the pulse LLM for the weekly batch when the key is present; otherwise star-based fallback.
 - Filters update review cards correctly.
 - Timestamp changes when new data is loaded.
 - Weekly Pulse dashboard shows LLM output and deterministic fallback comparison side by side.

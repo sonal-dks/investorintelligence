@@ -13,6 +13,7 @@ from backend.models.schemas import (
 )
 from backend.repositories.memory import MemoryBookingEmailRepository, MemoryBookingRepository
 from backend.services.email_template_renderer import EmailTemplateRenderer, format_scheduled_local, format_themes
+from backend.services.google_docs_exporter import export_google_doc_pdf
 from backend.services.pulse_fetcher import fetch_latest_pulse
 from backend.services.user_resolver import resolve_user
 
@@ -73,6 +74,7 @@ class BookingEmailService:
             "scheduled_at_local": format_scheduled_local(row["scheduled_at"]),
             "duration_minutes": str(row["duration_minutes"]),
             "calendar_event_link": row.get("calendar_event_id") or "",
+            "newsletter_subject": f"Weekly Pulse + Fee Explainer — {datetime.now(UTC).date().isoformat()}",
             "previous_scheduled_at_local": format_scheduled_local(row["previous_scheduled_at"])
             if row.get("previous_scheduled_at")
             else "",
@@ -82,6 +84,16 @@ class BookingEmailService:
             ctx_base["pulse_week_start"] = str(pulse.week_start or "")
             ctx_base["pulse_summary"] = pulse.summary_text
             ctx_base["top_themes"] = format_themes(pulse.themes)
+            ctx_base["pulse_judge_score"] = f"{float(pulse.judge_overall_score or 0.0):.1f}"
+            ctx_base["pulse_judge_metrics"] = ", ".join(
+                f"{k}: {v}" for k, v in (pulse.judge_metrics or {}).items()
+            )
+            ctx_base["pulse_doc_url"] = pulse.doc_url or ""
+            ctx_base["fee_scenario"] = pulse.fee_scenario or "Fee explanation currently unavailable."
+            ctx_base["fee_explanation_bullets"] = (
+                "\n".join(f"- {x}" for x in (pulse.explanation_bullets or [])[:5]) or "- (none)"
+            )
+            ctx_base["newsletter_subject"] = f"Weekly Pulse + Fee Explainer — {ctx_base['pulse_week_start']}"
             for i in range(3):
                 key = f"pulse_action_item_{i + 1}"
                 items = pulse.action_items
@@ -92,6 +104,21 @@ class BookingEmailService:
         approval_id = row["approval_id"]
         sends: list[SendEmailResponseSend] = []
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        newsletter_attachments: list[dict] = []
+        if pulse and pulse.doc_url:
+            try:
+                pdf = export_google_doc_pdf(pulse.doc_url)
+                if pdf:
+                    import base64
+
+                    newsletter_attachments = [
+                        {
+                            "filename": f"weekly-pulse-{ctx_base.get('pulse_week_start','latest')}.pdf",
+                            "content_base64": base64.b64encode(pdf).decode("utf-8"),
+                        }
+                    ]
+            except Exception:
+                newsletter_attachments = []
 
         for role, to_addr in (("user", user_email), ("advisor", advisor)):
             idem = f"booking:{booking_id}:status:{st}:role:{role}"
@@ -155,6 +182,7 @@ class BookingEmailService:
                     subject=rendered.subject,
                     body_markdown=rendered.body_markdown,
                     body_html=rendered.body_html,
+                    attachments=newsletter_attachments,
                 )
             except Exception as e:
                 self._emails.update_by_idempotency(

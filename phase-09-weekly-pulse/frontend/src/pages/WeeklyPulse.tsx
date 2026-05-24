@@ -21,6 +21,9 @@ type Latest = {
   model_path?: string;
   model_used?: string;
   deterministic_algorithm?: string;
+  judge_overall_score?: number;
+  judge_metrics?: Record<string, number>;
+  judge_rationale?: string;
 };
 
 export function WeeklyPulsePage() {
@@ -87,6 +90,15 @@ export function WeeklyPulsePage() {
           <div className="text-xs text-muted-foreground">
             Model path: {data.model_path ?? "unknown"} | LLM model: {data.model_used ?? "n/a"} | Deterministic:{" "}
             {data.deterministic_algorithm ?? "rule-based-v1"}
+          </div>
+          <div className="rounded-md border border-border bg-muted/30 p-3 text-sm">
+            <div className="font-medium">LLM Judge Score: {data.judge_overall_score ?? 0}/100</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              {Object.entries(data.judge_metrics ?? {})
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(" | ") || "No metric breakdown available"}
+            </div>
+            {data.judge_rationale ? <p className="mt-2 text-xs text-muted-foreground">{data.judge_rationale}</p> : null}
           </div>
           <p className="text-sm">{data.summary_text}</p>
           <ol className="list-inside list-decimal space-y-1 text-sm text-muted-foreground">

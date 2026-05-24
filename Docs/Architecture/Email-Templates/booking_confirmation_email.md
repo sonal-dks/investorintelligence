@@ -12,11 +12,11 @@ This is the single source of truth for the booking-confirmation email sent by th
 ---
 
 <!-- block:subject_user -->
-Your booking with the Next Leap advisor is {status} — {booking_code}
+{newsletter_subject}
 <!-- endblock -->
 
 <!-- block:subject_advisor -->
-[Booking {status}] {booking_code} — {topic} ({scheduled_at_local})
+{newsletter_subject}
 <!-- endblock -->
 
 ---
@@ -63,17 +63,29 @@ A booking on your calendar just changed state — full details below, including 
 ---
 
 <!-- block:pulse_block -->
-## This week in product (Weekly Pulse — {pulse_week_start})
+## Weekly pulse ({pulse_week_start})
 
 {pulse_summary}
 
 **Top themes this week**
 {top_themes}
 
+**Judge score**
+- Overall: {pulse_judge_score}/100
+- Breakdown: {pulse_judge_metrics}
+
 **Three things we are acting on**
 1. {pulse_action_item_1}
 2. {pulse_action_item_2}
 3. {pulse_action_item_3}
+
+## Fee explanation
+{fee_scenario}
+
+{fee_explanation_bullets}
+
+**Attached:** Weekly Pulse PDF  
+Doc link: {pulse_doc_url}
 
 _Pulse generated at {pulse_generated_at}._
 <!-- endblock -->

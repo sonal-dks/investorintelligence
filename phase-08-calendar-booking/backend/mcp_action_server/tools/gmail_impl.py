@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -43,6 +44,7 @@ def send_gmail_impl(
     body_markdown: str,
     body_html: str,
     idempotency_key: str,
+    attachments: list[dict] | None = None,
 ) -> str:
     """Send email via Gmail API; returns message id."""
     _ = idempotency_key  # idempotency enforced at BookingEmailService / bridge layer
@@ -61,6 +63,13 @@ def send_gmail_impl(
     msg["subject"] = subject
     msg.attach(MIMEText(body_markdown, "plain", "utf-8"))
     msg.attach(MIMEText(body_html, "html", "utf-8"))
+    for a in attachments or []:
+        data_b64 = str(a.get("content_base64") or "")
+        if not data_b64:
+            continue
+        part = MIMEApplication(base64.b64decode(data_b64), _subtype="pdf")
+        part.add_header("Content-Disposition", "attachment", filename=str(a.get("filename") or "attachment.pdf"))
+        msg.attach(part)
 
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
     sent = service.users().messages().send(userId="me", body={"raw": raw}).execute()

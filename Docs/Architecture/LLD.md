@@ -113,7 +113,7 @@ Indexes: `idx_fund_slug_scraped` on (fund_slug, scraped_at DESC) for latest-per-
 | review_date | date | | When review was posted |
 | thumbs_up | integer | default 0 | Helpful votes |
 | app_version | text | | App version reviewed |
-| sentiment | text | | positive/neutral/negative (filled in Phase 09) |
+| sentiment | text | | positive/neutral/negative — updated on each successful `POST /api/pulse/generate` for that week’s rows via OpenRouter text classification (batched); star-based until first successful run |
 | scraped_at | timestamptz | NOT NULL, default now() | |
 
 Indexes: `idx_review_date` on (review_date DESC); `idx_review_sentiment` on (sentiment)
@@ -1628,21 +1628,28 @@ Indexes:
 
 #### Module: SentimentAnalyzer (backend)
 - Inputs: List of reviews (rating + text)
-- Outputs: Reviews with sentiment label added
+- Outputs: Reviews with `sentiment` ∈ {positive, neutral, negative} from **star rating only**
+- Internal logic: rating ≥4 → positive; 3 → neutral; ≤2 → negative
+- Used when: OpenRouter key missing, `len(reviews) < 10`, or batched LLM sentiment fails
+
+#### Module: PulseLLMClient (backend, OpenRouter)
+- Inputs: Review texts (batched), review snippets + aggregate stats for pulse generation
+- Outputs: Per-review sentiments; JSON payload with `summary_text`, `action_items`, `themes[]` (`theme`, `count`, `sentiment` including **mixed** for themes)
 - Internal logic:
-  - Primary (rule-based): rating >= 4 → positive; rating == 3 → neutral; rating <= 2 → negative
-  - Enhancement: For rating 3 reviews, optionally use LLM to disambiguate based on text tone
+  1. `classify_review_sentiments`: batched chat completion, JSON `{results:[{i,sentiment}]}`; retries without `response_format` if provider rejects JSON mode
+  2. `generate`: primary model then fallback; tries strict/loose word cap and JSON mode on/off; parses JSON after stripping optional markdown code fences
+  3. Prompt requires **specific** theme names; forbids vague buckets (e.g. “General Product Feedback”)
 
 #### Module: PulseSummaryGenerator (backend)
-- Inputs: Classified reviews, themes, keyword data
-- Outputs: Summary text (<250 words, 3 action items)
+- Inputs: Raw week reviews (ideally with `review_id`)
+- Outputs: Pulse dict including `llm_themes`, `deterministic_themes`, `top_themes`, `user_quotes`, `review_sentiment_updates`, judge verdict, keywords
 - Internal logic:
-  1. Aggregate stats: total reviews, positive/neutral/negative counts, average rating
-  2. ThemeExtractor: batch top 50 reviews to LLM → extract 5 themes
-  3. Build summary prompt: "Generate a weekly product pulse summary in under 250 words with exactly 3 actionable recommendations..."
-  4. Call LLM (Claude) → get summary
-  5. PulseJudge validates → if fail, regenerate (max 3 attempts)
-  6. Store in weekly_pulse table
+  1. If ≥10 reviews and LLM enabled: LLM sentiment batches → else SentimentAnalyzer
+  2. Aggregate stats from classified reviews
+  3. ThemeExtractor → deterministic themes
+  4. LLM generate → `llm_themes` (cap 5); on exception log warning and leave `llm_themes` from prior week or empty
+  5. PulseJudge on summary/actions; may revert summary to deterministic
+  6. Router persists pulse, keywords, and PATCHes `app_reviews.sentiment` from `review_sentiment_updates`
 
 #### Module: KeywordTracker (backend)
 - Inputs: Current week reviews, previous week keyword counts
@@ -1675,12 +1682,15 @@ Indexes:
     "model_path": "primary_llm | fallback_llm | deterministic_fallback",
     "model_used": "anthropic/claude-3.5-sonnet",
     "deterministic_algorithm": "rule-based sentiment + frequency theme extraction + keyword WoW",
-    "generated_at": "2026-05-06T07:00:00Z"
+    "generated_at": "2026-05-06T07:00:00Z",
+    "top_themes": [],
+    "user_quotes": []
   }
   ```
   - Notes:
-    - `themes` is aliased to `llm_themes` for downstream compatibility.
-    - Email and voice integrations consume `llm_themes` only.
+    - `themes` is aliased to `llm_themes` for downstream compatibility when LLM themes are non-empty.
+    - Email and voice integrations consume `llm_themes` only; deterministic themes are for dashboard comparison.
+    - Phase 09 `backend/config.py` loads env from phase `.env`, `phase-12-assembly-deploy/.env`, and `longlist.env` (non-overriding) so `OPENROUTER_API_KEY` is available in typical dev setups.
 
 #### GET /api/pulse/reviews
 - Request: `?sentiment=positive&page=1&limit=20`

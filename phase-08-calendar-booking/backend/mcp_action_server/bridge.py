@@ -105,12 +105,13 @@ class McpBridge:
         subject: str,
         body_markdown: str,
         body_html: str,
+        attachments: list[dict] | None = None,
     ) -> str:
         _require_meta(approval_id, actor_id, idempotency_key)
         return self._cached(
             "gmail.send",
             idempotency_key,
             lambda: gmail_impl.send_gmail_impl(
-                to, subject, body_markdown, body_html, idempotency_key
+                to, subject, body_markdown, body_html, idempotency_key, attachments=attachments
             ),
         )

@@ -78,3 +78,8 @@ class WeeklyPulseSnapshot(BaseModel):
     action_items: list[str]
     themes: list[dict]
     generated_at: str
+    judge_overall_score: float = 0.0
+    judge_metrics: dict = Field(default_factory=dict)
+    doc_url: str | None = None
+    fee_scenario: str | None = None
+    explanation_bullets: list[str] = Field(default_factory=list)

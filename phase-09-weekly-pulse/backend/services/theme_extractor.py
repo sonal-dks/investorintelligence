@@ -16,6 +16,12 @@ class ThemeExtractor:
         "dark mode": "Dark Mode",
         "ui": "UI/UX",
         "support": "Support Experience",
+        "kyc": "KYC & onboarding",
+        "gold": "Gold / SGB products",
+        "mutual fund": "Mutual fund discovery",
+        "withdraw": "Withdrawals & payouts",
+        "payment": "Payments & checkout",
+        "chart": "Charts & market data",
     }
 
     def extract(self, reviews: list[dict], limit: int = 5) -> list[dict]:
@@ -29,7 +35,7 @@ class ThemeExtractor:
                 if token in text:
                     matched.add(theme)
             if not matched:
-                matched.add("General Product Feedback")
+                matched.add("Uncategorized mentions (keyword-free)")
             for theme in matched:
                 counts[theme] += 1
                 sentiment_by_theme.setdefault(theme, Counter())[sentiment] += 1

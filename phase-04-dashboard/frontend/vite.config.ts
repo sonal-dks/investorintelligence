@@ -15,6 +15,8 @@ function resolveRepoRoot(): string {
 }
 
 const repoRoot = resolveRepoRoot();
+/** Shared deps for embedded phase sources (no per-phase node_modules on CI). */
+const sharedDeps = path.resolve(__dirname, "node_modules");
 const splitProxy = process.env.VITE_USE_SPLIT_API_PROXY === "1";
 const assembledTarget = process.env.VITE_ASSEMBLED_API_URL ?? "http://127.0.0.1:8012";
 
@@ -41,6 +43,13 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
+      react: path.join(sharedDeps, "react"),
+      "react-dom": path.join(sharedDeps, "react-dom"),
+      "@tanstack/react-query": path.join(sharedDeps, "@tanstack/react-query"),
+      "@supabase/supabase-js": path.join(sharedDeps, "@supabase/supabase-js"),
+      zustand: path.join(sharedDeps, "zustand"),
+      "lucide-react": path.join(sharedDeps, "lucide-react"),
+      "react-router-dom": path.join(sharedDeps, "react-router-dom"),
       "@phase05": path.resolve(repoRoot, "phase-05-smart-search/frontend/src"),
       "@phase06": path.resolve(repoRoot, "phase-06-voice-agent/frontend/src"),
       "@phase07": path.resolve(repoRoot, "phase-07-intent-approvals/frontend/src"),

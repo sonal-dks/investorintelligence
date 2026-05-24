@@ -788,11 +788,14 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
 
 ### High-Level Components
 - Component: SentimentAnalyzer (backend)
-  - Responsibility: Classify reviews as positive/neutral/negative
-  - Dependencies: Star rating (rule-based primary) + LLM for ambiguous cases
+  - Responsibility: Rule-based fallback: classify reviews as positive/neutral/negative from star rating
+  - Dependencies: None (in-process); used when OpenRouter is unavailable or LLM sentiment batch fails
+- Component: PulseLLMClient (OpenRouter)
+  - Responsibility: (1) Batched text-only sentiment for reviews in the pulse window; (2) Weekly summary + 3–5 **specific** themes with sentiment per theme (primary model, then fallback; JSON mode when supported); strips markdown code fences from model output before parsing JSON
+  - Dependencies: `OPENROUTER_API_KEY` (see Phase 09 env cascade in `architecture.md`)
 - Component: ThemeExtractor (backend)
-  - Responsibility: Identify top recurring themes from reviews
-  - Dependencies: OpenRouter (LLM batch analysis)
+  - Responsibility: Deterministic keyword→theme buckets for comparison / fallback (no vague “General Product Feedback”; broader keyword map)
+  - Dependencies: In-process heuristics only
 - Component: KeywordTracker (backend)
   - Responsibility: Track keyword frequency and week-over-week change
   - Dependencies: Supabase (review_keywords table)
@@ -800,8 +803,8 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
   - Responsibility: Generate weekly summary (<250 words, 3 action items)
   - Dependencies: OpenRouter (Primary LLM + fallback LLM), PulseJudge, deterministic fallback
 - Component: PulseJudge (backend)
-  - Responsibility: Validate summary against constraints
-  - Dependencies: OpenRouter (GPT-4o-mini)
+  - Responsibility: Validate summary against constraints (word count, action count, coarse PII patterns)
+  - Dependencies: In-process rules only
 
 ### Integration View
 - GitHub Action (post-scrape) → PulseSummaryGenerator:
@@ -821,16 +824,15 @@ Data may be **unstructured on the source website**, but Phase 01 stores **valida
   - Contract: reads latest `llm_themes` for greeting theme mention.
 
 ### Data Flow (Narrative)
-1. Weekly scrape completes → GitHub Action triggers POST /api/pulse/generate
-2. PulseSummaryGenerator fetches reviews from current week (app_reviews with review_date in last 7 days)
-3. SentimentAnalyzer: classify each review (4-5 stars = positive, 3 = neutral, 1-2 = negative)
-4. ThemeExtractor: batch reviews to LLM → extract top 5 themes with example quotes
-5. KeywordTracker: extract keywords, compare to previous week → calculate WoW change
-6. PulseSummaryGenerator: sends themes + sentiment stats to primary LLM → on failure retry strict prompt then fallback LLM → if both fail use deterministic fallback
-7. PulseJudge validates: word count ≤250? action items = 3? neutral tone?
-8. If judge fails → regenerate (max 3 attempts) → store best attempt
-9. Store in weekly_pulse table with all metrics
-10. Frontend displays on next load via /api/pulse/latest
+1. Weekly scrape completes → GitHub Action or admin triggers POST /api/pulse/generate
+2. PulseSummaryGenerator loads `app_reviews` for the ISO week (`review_date >= Monday week_start`) including `review_id`
+3. If OpenRouter is configured and there are ≥10 reviews: PulseLLMClient assigns **text-based** sentiment per review in batches; otherwise SentimentAnalyzer (star-based). Pulse KPI counts use these labels.
+4. ThemeExtractor computes deterministic keyword themes for comparison
+5. PulseLLMClient produces summary, three action items, and 3–5 **specific** themes (prompt bans vague labels); retries stricter word limit, JSON vs non-JSON mode, then fallback model
+6. KeywordTracker computes mention counts and WoW deltas
+7. PulseJudge validates summary constraints; on failure, summary/actions fall back to deterministic text (themes may still be LLM-produced when generation succeeded)
+8. Persist `weekly_pulse`, `review_keywords`, and PATCH `app_reviews.sentiment` for the current batch when `review_id` is known
+9. UI reads `/api/pulse/latest`
 
 ### Security and Compliance
 - AuthN/AuthZ model: Generation endpoint admin-only; read endpoints available to all authenticated users

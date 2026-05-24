@@ -185,8 +185,8 @@ Set these in local `.env` (backend), `.env` / Vite env (frontend), and GitHub Ac
 | Item | Requirement |
 |------|-------------|
 | **Depends on** | Phase 01: `app_reviews` with real reviews; Phase 05+ optional for triggering from app. |
-| **Env** | `OPENROUTER_API_KEY`, judge model; Supabase keys; tables `weekly_pulse`, `review_keywords` per LLD. |
-| **Live verification** | Generation reads real `app_reviews`; summary persisted to Supabase; judge step uses live LLM. |
+| **Env** | `OPENROUTER_API_KEY` (loaded from `phase-09-weekly-pulse/.env`, then `phase-12-assembly-deploy/.env`, then repo `longlist.env` if present); optional `PHASE09_LLM_PRIMARY_MODEL` / `PHASE09_LLM_FALLBACK_MODEL`; Supabase keys; tables `weekly_pulse`, `review_keywords`, `app_reviews` per LLD. |
+| **Live verification** | Generation reads real `app_reviews` (including `review_id`); OpenRouter classifies per-review `sentiment` from text (batched), then primary+fallback models emit specific `llm_themes` (JSON, markdown-fence tolerant); weekly row + keyword rows persisted; optional PATCH of `app_reviews.sentiment` for the current week’s rows. |
 
 ---
 

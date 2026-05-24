@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 
 from backend.main import app
 from backend.routers.pulse_router import reset_state_for_tests, seed_reviews_for_tests
+from backend.services.pulse_ops_contract import validate_weekly_pulse_contract
 
 
 def _seed_reviews(n: int) -> list[dict]:
@@ -18,6 +19,29 @@ def _seed_reviews(n: int) -> list[dict]:
                 "rating": 5 if i % 3 else 2,
                 "review_text": "Portfolio loading is slow and SIP flow is confusing.",
                 "review_date": (now - timedelta(days=i % 5)).isoformat(),
+            }
+        )
+    return reviews
+
+
+def _seed_reviews_diverse(n: int) -> list[dict]:
+    now = datetime.now(UTC).date()
+    templates = [
+        ("The SIP workflow is confusing when I try to modify installment amounts on my mutual funds.", 4),
+        ("App feels slow when loading my portfolio dashboard each morning before market open.", 2),
+        ("Please add proper dark mode for late night portfolio checking and readability.", 5),
+        ("Customer support was unhelpful with my KYC documentation problem last Tuesday.", 2),
+        ("Great fund catalog overall but the UI needs polish and clearer navigation between screens.", 4),
+    ]
+    reviews = []
+    for i in range(n):
+        text, rating = templates[i % len(templates)]
+        reviews.append(
+            {
+                "reviewer_name": f"User{i}",
+                "rating": rating,
+                "review_text": text,
+                "review_date": now.isoformat(),
             }
         )
     return reviews
@@ -40,7 +64,8 @@ def test_generate_requires_admin():
 
 def test_full_pulse_flow():
     reset_state_for_tests()
-    seed_reviews_for_tests(_seed_reviews(20))
+    seeded = _seed_reviews_diverse(20)
+    seed_reviews_for_tests(seeded)
     c = TestClient(app)
     rg = c.post("/api/pulse/generate", headers={"x-user-role": "admin"})
     assert rg.status_code == 200, rg.text
@@ -55,6 +80,10 @@ def test_full_pulse_flow():
     assert "deterministic_summary_text" in body
     assert "deterministic_algorithm" in body
     assert body["themes"] == body["llm_themes"]
+    contract = validate_weekly_pulse_contract(body, seeded)
+    assert contract["pass"] is True, contract["issues"]
+    assert len(body.get("user_quotes") or []) == 3
+    assert len(body.get("top_themes") or []) == 3
 
     reviews = c.get("/api/pulse/reviews", params={"sentiment": "positive", "page": 1, "limit": 5})
     assert reviews.status_code == 200
@@ -71,10 +100,14 @@ def test_full_pulse_flow():
 
 def test_low_review_week_marked_explicitly():
     reset_state_for_tests()
-    seed_reviews_for_tests(_seed_reviews(3))
+    seeded = _seed_reviews(3)
+    seed_reviews_for_tests(seeded)
     c = TestClient(app)
     rg = c.post("/api/pulse/generate", headers={"x-user-role": "admin"})
     assert rg.status_code == 200
     latest = c.get("/api/pulse/latest")
     assert latest.status_code == 200
-    assert "Insufficient data" in latest.json()["summary_text"]
+    body = latest.json()
+    assert "Insufficient data" in body["summary_text"]
+    contract = validate_weekly_pulse_contract(body, seeded)
+    assert contract["pass"] is True, contract["issues"]

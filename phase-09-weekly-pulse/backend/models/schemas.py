@@ -27,11 +27,16 @@ class PulseLatestResponse(BaseModel):
     themes: list[dict]
     llm_themes: list[dict] = []
     deterministic_themes: list[dict] = []
+    top_themes: list[dict] = Field(default_factory=list)
+    user_quotes: list[str] = Field(default_factory=list)
     llm_summary_text: str | None = None
     deterministic_summary_text: str | None = None
     model_path: str | None = None
     model_used: str | None = None
     deterministic_algorithm: str | None = None
+    judge_overall_score: float = 0.0
+    judge_metrics: dict = Field(default_factory=dict)
+    judge_rationale: str | None = None
     generated_at: str
 
 

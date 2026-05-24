@@ -2,6 +2,18 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "react": ["./node_modules/@types/react/index.d.ts"],
+      "react/jsx-runtime": ["./node_modules/@types/react/jsx-runtime.d.ts"],
+      "react-dom": ["./node_modules/@types/react-dom/index.d.ts"],
+      "react-dom/client": ["./node_modules/@types/react-dom/client.d.ts"],
+      "@tanstack/react-query": ["./node_modules/@tanstack/react-query"],
+      "@tanstack/react-query/*": ["./node_modules/@tanstack/react-query/*"],
+      "@supabase/supabase-js": ["./node_modules/@supabase/supabase-js"],
+      "zustand": ["./node_modules/zustand"],
+      "zustand/*": ["./node_modules/zustand/*"],
+      "lucide-react": ["./node_modules/lucide-react"],
+      "react-router-dom": ["./node_modules/react-router-dom"],
+      "react-router-dom/*": ["./node_modules/react-router-dom/*"],
       "@phase05/*": ["../../phase-05-smart-search/frontend/src/*"],
       "@phase06/*": ["../../phase-06-voice-agent/frontend/src/*"],
       "@phase07/*": ["../../phase-07-intent-approvals/frontend/src/*"],

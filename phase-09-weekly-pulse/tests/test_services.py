@@ -46,6 +46,12 @@ def test_generator_insufficient_data_fallback():
 
 
 class _LLMOk:
+    def is_enabled(self) -> bool:
+        return True
+
+    def classify_review_sentiments(self, reviews, batch_size=24):
+        return SentimentAnalyzer().annotate(list(reviews))
+
     def generate(self, review_snippets, stats):
         class _Res:
             summary_text = "LLM weekly pulse summary under constraints."
@@ -58,6 +64,12 @@ class _LLMOk:
 
 
 class _LLMFail:
+    def is_enabled(self) -> bool:
+        return True
+
+    def classify_review_sentiments(self, reviews, batch_size=24):
+        raise RuntimeError("llm sentiment failed")
+
     def generate(self, review_snippets, stats):
         raise RuntimeError("llm failed")
 

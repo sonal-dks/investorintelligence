@@ -88,6 +88,7 @@ def gmail_send(
     subject: str,
     body_markdown: str,
     body_html: str,
+    attachments: list[dict] | None = None,
 ) -> str:
     return _bridge.gmail_send(
         approval_id,
@@ -97,6 +98,7 @@ def gmail_send(
         subject,
         body_markdown,
         body_html,
+        attachments,
     )
 
 
