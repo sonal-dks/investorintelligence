@@ -3,6 +3,7 @@ import path from "node:path";
 
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import type { Plugin } from "vite";
 import { defineConfig } from "vitest/config";
 
 /** Repo root: `phase-04-dashboard/frontend` is two levels down; `frontend-deploy` is one level down. */
@@ -15,8 +16,34 @@ function resolveRepoRoot(): string {
 }
 
 const repoRoot = resolveRepoRoot();
-/** Shared deps for embedded phase sources (no per-phase node_modules on CI). */
-const sharedDeps = path.resolve(__dirname, "node_modules");
+const dashboardSrc = path.resolve(__dirname, "src/main.tsx");
+
+/** Bare imports resolved from dashboard node_modules for embedded phase frontends. */
+const SHARED_DEPS = [
+  "react",
+  "react-dom",
+  "react/jsx-runtime",
+  "@tanstack/react-query",
+  "@supabase/supabase-js",
+  "zustand",
+  "lucide-react",
+  "react-router-dom",
+];
+
+function sharedDepsFromDashboard(): Plugin {
+  return {
+    name: "shared-deps-from-dashboard",
+    enforce: "pre",
+    async resolveId(source, importer, options) {
+      if (!importer?.includes(`${path.sep}phase-`)) return null;
+      const isShared =
+        SHARED_DEPS.includes(source) || SHARED_DEPS.some((d) => source.startsWith(`${d}/`));
+      if (!isShared) return null;
+      return this.resolve(source, dashboardSrc, { ...options, skipSelf: true });
+    },
+  };
+}
+
 const splitProxy = process.env.VITE_USE_SPLIT_API_PROXY === "1";
 const assembledTarget = process.env.VITE_ASSEMBLED_API_URL ?? "http://127.0.0.1:8012";
 
@@ -40,16 +67,10 @@ const splitProxies: Record<string, { target: string; changeOrigin: boolean }> = 
 };
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [sharedDepsFromDashboard(), react(), tailwindcss()],
   resolve: {
+    dedupe: SHARED_DEPS,
     alias: {
-      react: path.join(sharedDeps, "react"),
-      "react-dom": path.join(sharedDeps, "react-dom"),
-      "@tanstack/react-query": path.join(sharedDeps, "@tanstack/react-query"),
-      "@supabase/supabase-js": path.join(sharedDeps, "@supabase/supabase-js"),
-      zustand: path.join(sharedDeps, "zustand"),
-      "lucide-react": path.join(sharedDeps, "lucide-react"),
-      "react-router-dom": path.join(sharedDeps, "react-router-dom"),
       "@phase05": path.resolve(repoRoot, "phase-05-smart-search/frontend/src"),
       "@phase06": path.resolve(repoRoot, "phase-06-voice-agent/frontend/src"),
       "@phase07": path.resolve(repoRoot, "phase-07-intent-approvals/frontend/src"),
